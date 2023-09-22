@@ -1,9 +1,10 @@
-from pathlib import Path
 import typer
-from rich import print
+import os
 import yaml
 import time
-import os
+from pathlib import Path
+from rich import print
+
 
 global_config_path: Path = Path.cwd() / "config.yaml"
 if global_config_path.is_file():
@@ -15,13 +16,14 @@ if global_config_path.is_file():
     import slh.commands.self as self
 else:
     print(
-        '''
+        """
         [bold red]Alert![/bold red]
 
         Config file does not exist in current directory.
 
         Run [yellow]slh init[/yellow] to create one :rocket:
-        ''')
+        """
+    )
 
 # TODO: add new db tables: Annotations, Colors (theme list),
 # Sources (add Source column to Studies), Searches (add Search column to Studies)
@@ -34,19 +36,25 @@ app = typer.Typer()
 
 APP_NAME = "slh"
 APP_DIR = typer.get_app_dir(APP_NAME)
-DEFAULT_PROJECT_NAME = f"slr-ai-thesis-{time.strftime('%Y')}-{time.strftime('%m')}-{time.strftime('%d')}"
+DEFAULT_PROJECT_NAME = (
+    f"slr-ai-thesis-{time.strftime('%Y')}-{time.strftime('%m')}-{time.strftime('%d')}"
+)
 
 
 @app.command()
 def version():
-    print('''
+    print(
+        """
 
             SLRs Little Helper (slh) v0.0.1
 
-        ''')
+        """
+    )
 
 
-def saveConfigFile(project_name, gs_url, csv_export, html_export, google_credentials, sqlite_db):
+def saveConfigFile(
+    project_name, gs_url, csv_export, html_export, google_credentials, sqlite_db
+):
     """Generates and saves config.yaml file
 
     Returns:
@@ -106,10 +114,10 @@ def saveConfigFile(project_name, gs_url, csv_export, html_export, google_credent
         },
     }
 
-    fileYamlpath = os.path.join(".", 'config.yaml')
+    fileYamlpath = os.path.join(".", "config.yaml")
     if os.path.exists(fileYamlpath):
         yes = typer.prompt(
-            f'''
+            f"""
 
             Config file already exists at {fileYamlpath}.
 
@@ -117,10 +125,12 @@ def saveConfigFile(project_name, gs_url, csv_export, html_export, google_credent
 
             Press Ctrl+C to exit.
 
-            ''')
+            """
+        )
         if yes == "y":
             with open(fileYamlpath, "w") as f:
-                f.write('''#
+                f.write(
+                    """#
 # Config file for slh
 #
 # project_name - Name of the project directory
@@ -141,17 +151,27 @@ def saveConfigFile(project_name, gs_url, csv_export, html_export, google_credent
 # Themes, Searches, and Sources will be added to database with sync yaml command
 #
 # yamllint disable rule:line-length
-''')
-                yaml.dump(config, f, indent=4, width=100, allow_unicode=True, default_flow_style=False, explicit_start=True,
-                          encoding='utf-8', sort_keys=False, line_break=None)
+"""
+                )
+                yaml.dump(
+                    config,
+                    f,
+                    indent=4,
+                    width=100,
+                    allow_unicode=True,
+                    default_flow_style=False,
+                    explicit_start=True,
+                    encoding="utf-8",
+                    sort_keys=False,
+                    line_break=None,
+                )
             return f"Config file created at {fileYamlpath}"
 
 
 @app.command()
-def init(
-    config: bool = typer.Option(False, help="Only create config file")
-):
-    print('''
+def init(config: bool = typer.Option(False, help="Only create config file")):
+    print(
+        """
 
         Good day researcher! :wave:
 
@@ -161,24 +181,31 @@ def init(
 
         A CLI tool to help you with your Systematic Literature Review. :books:
 
-        ''')
+        """
+    )
     if config:
-        res = saveConfigFile(DEFAULT_PROJECT_NAME, "", "studies.csv",
-                             "export.html", "credentials.json", "slh.db")
+        res = saveConfigFile(
+            DEFAULT_PROJECT_NAME,
+            "",
+            "studies.csv",
+            "export.html",
+            "credentials.json",
+            "slh.db",
+        )
         print(res)
         return
     else:
         if typer.confirm(
-            '''
+            """
 
             Choose (Y) if you want to start initialization questionaire.
 
             Choose (n) to initialize with the default config file.
 
-            '''):
-
+            """
+        ):
             project_name = typer.prompt(
-                '''
+                """
 
                 What is the name of your project? (e.g. slr-2023-4-19)
 
@@ -186,10 +213,12 @@ def init(
 
                     Press Enter to use the default name.
 
-                ''', default=f"slr-ai-thesis-{time.strftime('%Y')}-{time.strftime('%m')}-{time.strftime('%d')}")
+                """,
+                default=f"slr-ai-thesis-{time.strftime('%Y')}-{time.strftime('%m')}-{time.strftime('%d')}",
+            )
 
             csv_export = typer.prompt(
-                '''
+                """
 
                 What is the CSV filename?
 
@@ -197,17 +226,20 @@ def init(
 
                     Press Enter to use the default name.
 
-                ''', default="studies.csv")
+                """,
+                default="studies.csv",
+            )
 
             gs_url = typer.prompt(
-                '''
+                """
 
                 What is the Google Sheet's URL?
 
-                ''')
+                """
+            )
 
             html_export = typer.prompt(
-                '''
+                """
 
                 What is the HTML Export file name?
 
@@ -215,10 +247,12 @@ def init(
 
                     Press Enter to use the default name.
 
-                ''', default="export.html")
+                """,
+                default="export.html",
+            )
 
             google_credentials = typer.prompt(
-                '''
+                """
 
                 What is the name to your Google Credentials?
 
@@ -226,10 +260,12 @@ def init(
 
                     Press Enter to use the default name.
 
-                ''', default="credentials.json")
+                """,
+                default="credentials.json",
+            )
 
             sqlite_db = typer.prompt(
-                '''
+                """
 
                 What is the name to your SQLite Database?
 
@@ -239,7 +275,9 @@ def init(
 
                     Press Enter to use the default name.
 
-                ''', default="slh.db")
+                """,
+                default="slh.db",
+            )
 
             # Create the project directory
             project_dir = Path.cwd() / project_name
@@ -247,19 +285,33 @@ def init(
                 project_dir.mkdir()
 
             if typer.confirm(
-                '''
+                """
 
                 Do you want to create a new config file?
 
-                '''):
-                saveConfigFile(project_name, gs_url, csv_export,
-                               html_export, google_credentials, sqlite_db)
+                """
+            ):
+                saveConfigFile(
+                    project_name,
+                    gs_url,
+                    csv_export,
+                    html_export,
+                    google_credentials,
+                    sqlite_db,
+                )
         else:
-            res = saveConfigFile(DEFAULT_PROJECT_NAME, "", "studies.csv",
-                                 "export.html", "credentials.json", "slh.db")
+            res = saveConfigFile(
+                DEFAULT_PROJECT_NAME,
+                "",
+                "studies.csv",
+                "export.html",
+                "credentials.json",
+                "slh.db",
+            )
             print(res)
 
-        print(f'''
+        print(
+            f"""
 
             :star: Project directory created at {project_dir}
             :star: Config file created at {project_dir}/config.yaml
@@ -276,7 +328,8 @@ def init(
                 # [yellow]slh --help[/yellow]
                 # [yellow]slh load csv[/yellow] # to load studies.csv into sqlite database
 
-            ''')
+            """
+        )
 
 
 if global_config_path.is_file():
@@ -288,5 +341,5 @@ if global_config_path.is_file():
     app.add_typer(self.app, name="self")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     app()

@@ -1,5 +1,5 @@
-from pathlib import Path
 import yaml
+from pathlib import Path
 
 
 def load_config():

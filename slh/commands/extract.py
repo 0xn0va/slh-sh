@@ -1,18 +1,21 @@
-from slh.config import load_config
 import typer
-from typing_extensions import Annotated
-import pandas as pd
-import requests
-import re
-from bs4 import BeautifulSoup
-import time
 import os
-from pathlib import Path
-from rich import print
+import re
+import time
+import requests
+import pandas as pd
 import sqlite3 as sql
-from pdfminer.high_level import extract_text
-import fitz
+from pathlib import Path
 from itertools import groupby
+from bs4 import BeautifulSoup
+
+from typing_extensions import Annotated
+from rich import print
+
+import fitz
+from pdfminer.high_level import extract_text
+
+from slh.config import load_config
 
 
 app = typer.Typer()
@@ -41,11 +44,12 @@ def fileNameGenerator(covidenceNumber: str, authors: str, year: str) -> list[str
 # TODO: make a func from name generator from filename command so
 # this can create cit from authors column not filename user can choose if from db or csv
 def cit(
-        csv: Annotated[str, typer.Argument(
-            help="Covidence CSV Export")] = configData["csv_export"],
+    csv: Annotated[str, typer.Argument(help="Covidence CSV Export")] = configData[
+        "csv_export"
+    ],
 ):
     input(
-        f'''
+        f"""
         Press Enter to generate citations:
 
         CSV File: {csv}
@@ -53,7 +57,8 @@ def cit(
         Google Sheet's URL: {configData["gs_url"]}
 
         Press Ctrl+C to cancel.
-        ''')
+        """
+    )
 
     print(f"Extracting citations from db...")
 
@@ -77,7 +82,6 @@ def cit(
             print(f"{row} is none")
             authorNoneRemoved.append(row)
         else:
-
             fileName: str = fileNameGenerator(row[0], row[1], row[2])
 
             fileName = fileName.split("_")
@@ -110,12 +114,12 @@ def cit(
 
 @app.command()
 def bib(
-        csv: Annotated[str, typer.Argument(
-            help="Covidence CSV Export")] = configData["csv_export"],
+    csv: Annotated[str, typer.Argument(help="Covidence CSV Export")] = configData[
+        "csv_export"
+    ],
 ):
-
     input(
-        f'''
+        f"""
         Press Enter to generate bibliographies:
 
         CSV File: {csv}
@@ -123,13 +127,14 @@ def bib(
         Google Sheet's URL: {configData["gs_url"]}
 
         Press Ctrl+C to cancel.
-        ''')
+        """
+    )
 
     csvDF = pd.read_csv(csv)
     # convert column 'Published Year' from int to string in csvDF
-    csvDF['Published Year'] = csvDF['Published Year'].astype(str)
+    csvDF["Published Year"] = csvDF["Published Year"].astype(str)
     # replace all NaN values with 'None" in csvDF
-    csvDF = csvDF.fillna('None')
+    csvDF = csvDF.fillna("None")
 
     conn: sql.connect = sql.connect(configData["sqlite_db"])
     curr: sql.Cursor = conn.cursor()
@@ -162,7 +167,9 @@ def bib(
 
         # Update the studies table with the bibliography
         curr.execute(
-            "UPDATE studies SET Bibliography = ? WHERE Covidence = ?", (bibliography, cov))
+            "UPDATE studies SET Bibliography = ? WHERE Covidence = ?",
+            (bibliography, cov),
+        )
         conn.commit()
 
     conn.close()
@@ -171,30 +178,46 @@ def bib(
 
 @app.command()
 def dl(
-        html: Annotated[str, typer.Argument(
-            help="HTML export containing Covidence Number and Download Links")] = configData["html_export"],
-        pdfdir: Annotated[str, typer.Argument(
-            help="Directory to save PDFs")] = "studies_pdf",
-        idelement: Annotated[str, typer.Argument(
-            help="Class name of the 'div' element containing Covidence Number or ID in a div")] = "study-header",
-        dllinkelement: Annotated[str, typer.Argument(
-            help="Class name of the 'a' element containing the URL of the PDF")] = "action-link download",
+    html: Annotated[
+        str,
+        typer.Argument(
+            help="HTML export containing Covidence Number and Download Links"
+        ),
+    ] = configData["html_export"],
+    pdfdir: Annotated[
+        str, typer.Argument(help="Directory to save PDFs")
+    ] = "studies_pdf",
+    idelement: Annotated[
+        str,
+        typer.Argument(
+            help="Class name of the 'div' element containing Covidence Number or ID in a div"
+        ),
+    ] = "study-header",
+    dllinkelement: Annotated[
+        str,
+        typer.Argument(
+            help="Class name of the 'a' element containing the URL of the PDF"
+        ),
+    ] = "action-link download",
 ):
     input(
-        f'''
+        f"""
         Press Enter to download PDFs:
 
         HTML export File: {html}
         Study Folder: studies_pdf
 
         Press Ctrl+C to cancel.
-        ''')
+        """
+    )
 
-    print(f'''
+    print(
+        f"""
 
             Downloading PDFs from {html}...
 
-            ''')
+            """
+    )
 
     # Create the PDF directory if it doesn't exist.
     pdf_dir = Path.cwd() / pdfdir
@@ -217,14 +240,15 @@ def dl(
         study_header_number = re.findall("#(\d+)", study_header.text)[0]
 
         # Find the download link element.
-        download_link_element = study_header.parent.find(
-            "a", class_=dllinkelement)
+        download_link_element = study_header.parent.find("a", class_=dllinkelement)
 
         # Extract the download link.
         download_link = download_link_element["href"]
 
-        print(f'''
-            :runner: Downloading PDF with ID {study_header_number} and URL {download_link}...''')
+        print(
+            f"""
+            :runner: Downloading PDF with ID {study_header_number} and URL {download_link}..."""
+        )
 
         pdf_path = os.path.join(pdf_dir, f"{study_header_number}.pdf")
 
@@ -237,42 +261,44 @@ def dl(
                 time.sleep(3)
             else:
                 raise Exception(
-                    f'''
+                    f"""
 
                     [bold red]Error[/bold red]: {response.status_code}
 
                     Failed to download PDF: {download_link}, remove the section of the HTML file containing this link and try again.
 
-                    ''')
+                    """
+                )
         else:
             print(f"PDF already exists: {pdf_path}")
 
     print(
-        f'''
+        f"""
         :tada: {len(study_headers)} PDFs from {html} to {pdf_dir} downloaded.
 
-        ''')
+        """
+    )
 
 
 @app.command()
 def filename(
-        csv: Annotated[str, typer.Argument(
-            help="Covidence CSV Export")] = configData["csv_export"],
-        rename: Annotated[bool, typer.Option(
-            help="Also Rename the PDFs")] = False,
+    csv: Annotated[str, typer.Argument(help="Covidence CSV Export")] = configData[
+        "csv_export"
+    ],
+    rename: Annotated[bool, typer.Option(help="Also Rename the PDFs")] = False,
 ):
-    '''
+    """
 
     To link the Filenames on Google Sheet with the PDFs on Google Drive: https://github.com/0xnovasky/SLRsLittleHelper/tree/main/slh
 
-    '''
+    """
     print(f"Extracting filenames from {csv}...")
 
     csvDF = pd.read_csv(csv)
     # convert column 'Published Year' from int to string in csvDF
-    csvDF['Published Year'] = csvDF['Published Year'].astype(str)
+    csvDF["Published Year"] = csvDF["Published Year"].astype(str)
     # replace all NaN values with 'None" in csvDF
-    csvDF = csvDF.fillna('None')
+    csvDF = csvDF.fillna("None")
 
     conn: sql.connect = sql.connect(configData["sqlite_db"])
     curr: sql.Cursor = conn.cursor()
@@ -287,24 +313,21 @@ def filename(
     # TODO: make the arguments accessible to get naming schema from the command line and config file and add help
 
     fileNames = []
-    for i in csvDF['Authors']:
+    for i in csvDF["Authors"]:
         # select covidence # from csvDF where authors is i
-        covidenceNumber: str = csvDF.loc[csvDF['Authors']
-                                         == i]['Covidence #'].values[0]
+        covidenceNumber: str = csvDF.loc[csvDF["Authors"] == i]["Covidence #"].values[0]
         # select publicaiton year from csvDF where authors is i
-        year: str = csvDF.loc[csvDF['Authors'] ==
-                              i]['Published Year'].values[0]
+        year: str = csvDF.loc[csvDF["Authors"] == i]["Published Year"].values[0]
 
         fileName: str = fileNameGenerator(covidenceNumber, i, year)
         curr.execute(
-            f"UPDATE studies SET Filename = '{fileName}' WHERE Covidence ='{covidenceNumber}'")
+            f"UPDATE studies SET Filename = '{fileName}' WHERE Covidence ='{covidenceNumber}'"
+        )
         conn.commit()
         if rename:
-            pdf_path = os.path.join(
-                "studies_pdf", f"{covidenceNumber}.pdf")
+            pdf_path = os.path.join("studies_pdf", f"{covidenceNumber}.pdf")
             if os.path.exists(pdf_path) and not pdf_path.endswith(f"{fileName}.pdf"):
-                os.rename(pdf_path, os.path.join(
-                    "studies_pdf", f"{fileName}.pdf"))
+                os.rename(pdf_path, os.path.join("studies_pdf", f"{fileName}.pdf"))
             else:
                 print("file exists")
         fileNames.append(fileName)
@@ -313,20 +336,21 @@ def filename(
 
     print(fileNames)
     print(
-        f"Updated database with {len(fileNames)} filenames on studies Table, Filenames column...")
+        f"Updated database with {len(fileNames)} filenames on studies Table, Filenames column..."
+    )
     if rename:
         print(
-            f"Renamed {len(fileNames)} PDFs in studies_pdf folder with the filenames...")
+            f"Renamed {len(fileNames)} PDFs in studies_pdf folder with the filenames..."
+        )
 
 
 @app.command()
 def keywords(
-    cov: Annotated[str, typer.Option(
-        help="Covidence number to extract keywords")] = "",
-    all: Annotated[bool, typer.Option(
-        help="Extract keywords from all PDFs in studies_pdf folder")] = False,
-    db: Annotated[bool, typer.Option(
-        help="SQLite database file")] = False,
+    cov: Annotated[str, typer.Option(help="Covidence number to extract keywords")] = "",
+    all: Annotated[
+        bool, typer.Option(help="Extract keywords from all PDFs in studies_pdf folder")
+    ] = False,
+    db: Annotated[bool, typer.Option(help="SQLite database file")] = False,
 ):
     print(f"Keywords {cov}...")
 
@@ -350,31 +374,39 @@ def keywords(
             pdf_path = os.path.join(pdf_dir, file_name)
             print(f"Extracting keywords of: {pdf_path}...")
             text = extract_text(pdf_path)
-            regex = r'(?is)(keyword.*?)(?:(?:\r*\n){2})'
+            regex = r"(?is)(keyword.*?)(?:(?:\r*\n){2})"
             matches = re.findall(regex, text)
             length = len(matches)
             if length == 0:
                 print(f"Keywords not found for {pdf_path}")
                 all_keywords.append(f"{cov} None")
             elif length >= 1:
-                keywords = matches[0].replace("\n", " ").replace("Keywords:", "").replace(
-                    "KEYWORDS:", "").replace("Keywords", "").replace("KEYWORDS", "").strip()
+                keywords = (
+                    matches[0]
+                    .replace("\n", " ")
+                    .replace("Keywords:", "")
+                    .replace("KEYWORDS:", "")
+                    .replace("Keywords", "")
+                    .replace("KEYWORDS", "")
+                    .strip()
+                )
                 all_keywords.append(f"{cov} {keywords}")
                 print(cov, keywords)
                 if db:
                     curr.execute(
-                        f"UPDATE studies SET Keywords = '{keywords}' WHERE Covidence = '{cov}'")
+                        f"UPDATE studies SET Keywords = '{keywords}' WHERE Covidence = '{cov}'"
+                    )
                     conn.commit()
         conn.close()
         print(all_keywords)
         print(
-            f"Extracted keywords from {len(all_keywords)} PDFs and added them to the Database...")
+            f"Extracted keywords from {len(all_keywords)} PDFs and added them to the Database..."
+        )
 
     elif cov != "":
-
         # open a file if first element matches covidence number
         for file_name in os.listdir(pdf_dir):
-            if file_name.startswith(cov+"_"):
+            if file_name.startswith(cov + "_"):
                 pdf_path = os.path.join(pdf_dir, file_name)
                 break
 
@@ -384,24 +416,33 @@ def keywords(
 
         text = extract_text(pdf_path)
 
-        regex = r'(?is)(keyword.*?)(?:(?:\r*\n){2})'
+        regex = r"(?is)(keyword.*?)(?:(?:\r*\n){2})"
         matches = re.findall(regex, text)
 
         if len(matches) == 0:
             print(f"Keywords not found for {pdf_path}")
         elif len(matches) >= 1:
-            keywords = matches[0].replace("Keywords:", "").replace(
-                "KEYWORDS:", "").replace("Keywords", "").replace("KEYWORDS", "").strip()
+            keywords = (
+                matches[0]
+                .replace("Keywords:", "")
+                .replace("KEYWORDS:", "")
+                .replace("Keywords", "")
+                .replace("KEYWORDS", "")
+                .strip()
+            )
             if db:
                 curr.execute(
-                    f"UPDATE studies SET Keywords = '{keywords}' WHERE Covidence = '{cov}'")
+                    f"UPDATE studies SET Keywords = '{keywords}' WHERE Covidence = '{cov}'"
+                )
                 conn.commit()
                 conn.close()
                 print(f"Added keywords of {cov} to db")
             print(f"Keywords for {cov} located at {pdf_path}:\n\n{keywords}")
     else:
         print(
-            "Please enter a covidence number using --cov [Covidence Number] or use --all")
+            "Please enter a covidence number using --cov [Covidence Number] or use --all"
+        )
+
 
 # https://pymupdf.readthedocs.io/en/latest/page.html#page
 # https://pymupdf.readthedocs.io/en/latest/vars.html#annotationtypes
@@ -412,13 +453,10 @@ def keywords(
 
 @app.command()
 def annots(
-    cov: Annotated[str, typer.Option(
-        help="Covidence number to extract keywords")],
-    color: Annotated[str, typer.Option(
-        help="Color of the annotations to extract")],
+    cov: Annotated[str, typer.Option(help="Covidence number to extract keywords")],
+    color: Annotated[str, typer.Option(help="Color of the annotations to extract")],
 ):
-    print(
-        f"Fetching Annotations of {color} (themes,topic,colored texts) from {cov}...")
+    print(f"Fetching Annotations of {color} (themes,topic,colored texts) from {cov}...")
 
     # TODO: make this work with all pdfs
     doc = fitz.open("#59_Alaassar_et_al_2023.pdf")
@@ -429,7 +467,7 @@ def annots(
     print(annots)
     for annot in annots:
         if annot.type[1] == "Highlight":
-            annotColor = annot.colors['stroke']
+            annotColor = annot.colors["stroke"]
             hex_color = rgb_to_hex(annotColor)
             # TODO: translate hex color to color name based on Themes/Topics
         print("------------------")

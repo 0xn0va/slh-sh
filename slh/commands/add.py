@@ -1,43 +1,47 @@
 import typer
-from typing_extensions import Annotated
 import sqlite3 as sql
-from slh.config import load_config
 import csv as csvimport
+
+from typing_extensions import Annotated
 from rich import print
-from rich.progress import track
-import time
+
+from slh.config import load_config
 
 app = typer.Typer()
-
 configData = load_config()
 
 
 @app.command()
 # TODO: Adding new CSV file creates new DB, asks for DB name, and adds them to Config.yaml
 def csv(
-    csv: Annotated[str, typer.Argument(
-        help=f'''
+    csv: Annotated[
+        str,
+        typer.Argument(
+            help=f"""
         Imports a CSV file into a SQLite database.
 
         1. Export the CSV file  from Covidence via Export > REFERENCES > Options [Full text review] > Format [CSV]
 2. Rename to {configData["csv_export"]}
 3. Place it in the project directory.
-    ''')] = configData["csv_export"],
+    """
+        ),
+    ] = configData["csv_export"],
 ):
-
     input(
-        f'''
+        f"""
         Press Enter to import:
 
         CSV File: {csv}
         Sqlite Database Name: {configData["sqlite_db"]}
 
         Press Ctrl+C to cancel.
-        ''')
+        """
+    )
     print(
-        f'''
+        f"""
         Importing {csv} to {configData['sqlite_db']}...
-        ''')
+        """
+    )
 
     # Open the CSV file
     with open(configData["csv_export"], "r") as f:
@@ -45,8 +49,7 @@ def csv(
         # Read the first line of the file to get the CSV headers
         headers = next(reader)
 
-        headers = [header.replace(" ", "_").replace("_#", "")
-                   for header in headers]
+        headers = [header.replace(" ", "_").replace("_#", "") for header in headers]
 
         conn = sql.connect(configData["sqlite_db"])
         curr = conn.cursor()
@@ -54,17 +57,22 @@ def csv(
         # check if gs_studies_id_column_name is not empty in config.yaml
         if configData["gs_studies_id_column_name"] == "":
             print(
-                "gs_studies_id_column_name is empty in config.yaml incremental number will be used as id.")
+                "gs_studies_id_column_name is empty in config.yaml incremental number will be used as id."
+            )
             # Create a new table in the SQLite database with the same columns as the CSV file headers and add an id column
-            curr.execute(f"""CREATE TABLE IF NOT EXISTS studies (
+            curr.execute(
+                f"""CREATE TABLE IF NOT EXISTS studies (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 {", ".join(headers)}
-            )""")
+            )"""
+            )
         else:
             # Create a new table in the SQLite database with the same columns as the CSV file headers
-            curr.execute(f"""CREATE TABLE IF NOT EXISTS studies (
+            curr.execute(
+                f"""CREATE TABLE IF NOT EXISTS studies (
                 {", ".join(headers)}
-            )""")
+            )"""
+            )
 
             # Iterate over the rows of the CSV file and insert each row into the table in the database
             rows = []
@@ -73,21 +81,25 @@ def csv(
 
             # check if the study is already in the database based on the covidence number as id if not insert it
             for row in rows:
-                curr.execute(
-                    f"SELECT * FROM studies WHERE Covidence = ?", (row[12],))
+                curr.execute(f"SELECT * FROM studies WHERE Covidence = ?", (row[12],))
                 if len(curr.fetchall()) > 0:
                     print(
-                        f":information_desk_person: {row[12]} is already in the database.")
+                        f":information_desk_person: {row[12]} is already in the database."
+                    )
                 else:
                     curr.execute(
                         # insert row into sqlite db
-                        f"INSERT INTO studies ({', '.join(headers)}) VALUES ({', '.join([f'?' for i in range(len(headers))])})", row)
+                        f"INSERT INTO studies ({', '.join(headers)}) VALUES ({', '.join([f'?' for i in range(len(headers))])})",
+                        row,
+                    )
                     print(f":star: {row[12]} added to the database.")
 
-    print(f'''
+    print(
+        f"""
         :tada: {len(rows)} studies processed.
 
-        ''')
+        """
+    )
 
     # Close the CSV file and the SQLite database
     f.close()
@@ -98,8 +110,7 @@ def csv(
 @app.command()
 # add doi # fetches, dls if available and adds an study
 def doi(
-    doi: Annotated[str, typer.Argument(
-        help="DOI")],
+    doi: Annotated[str, typer.Argument(help="DOI")],
 ):
     print(f"DOI {doi}...")
 
@@ -107,8 +118,7 @@ def doi(
 @app.command()
 # add themes --cov --color
 def themes(
-    color: Annotated[str, typer.Option(
-        help="Theme color")],
+    color: Annotated[str, typer.Option(help="Theme color")],
 ):
     print(f"Themes {color}...")
 
@@ -116,8 +126,7 @@ def themes(
 @app.command()
 # add annot --cov (updates the Studies based on cov number)
 def annot(
-    cov: Annotated[str, typer.Option(
-        help="Covidence number")],
+    cov: Annotated[str, typer.Option(help="Covidence number")],
 ):
     print(f"Annot {cov}...")
 
@@ -125,8 +134,7 @@ def annot(
 @app.command()
 # add cit --cov (updates the Studies based on cov number)
 def cit(
-    cov: Annotated[str, typer.Option(
-        help="Covidence number")],
+    cov: Annotated[str, typer.Option(help="Covidence number")],
 ):
     print(f"Cit {cov}...")
 
@@ -134,8 +142,7 @@ def cit(
 @app.command()
 # add sources --import csv/txt/json
 def sources(
-    source: Annotated[str, typer.Option(
-        help="Source")],
+    source: Annotated[str, typer.Option(help="Source")],
 ):
     print(f"Sources {source}...")
 
@@ -143,8 +150,7 @@ def sources(
 @app.command()
 # add searches --import csv/txt/json
 def searches(
-    search: Annotated[str, typer.Option(
-        help="Search")],
+    search: Annotated[str, typer.Option(help="Search")],
 ):
     print(f"Searches {search}...")
 
@@ -152,7 +158,6 @@ def searches(
 @app.command()
 # add status --cov --include/exclude/unknown
 def status(
-    cov: Annotated[str, typer.Option(
-        help="Covidence number")],
+    cov: Annotated[str, typer.Option(help="Covidence number")],
 ):
     print(f"Status {cov}...")

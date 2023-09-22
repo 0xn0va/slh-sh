@@ -1,12 +1,14 @@
-from slh.config import load_config
 import typer
+import os
+import sys
+import webbrowser
+import subprocess
+from pathlib import Path
+
 from typing_extensions import Annotated
 from rich import print
-import webbrowser
-import os
-from pathlib import Path
-import sys
-import subprocess
+
+from slh.config import load_config
 
 app = typer.Typer()
 configData = load_config()
@@ -14,8 +16,7 @@ configData = load_config()
 
 @app.command()
 def gd(
-    url: Annotated[str, typer.Argument(
-        help="Google Drive URL")] = configData["gd_url"]
+    url: Annotated[str, typer.Argument(help="Google Drive URL")] = configData["gd_url"]
 ):
     print(f"Opening Google Drive: {url}...")
     webbrowser.open(url)
@@ -23,8 +24,7 @@ def gd(
 
 @app.command()
 def gs(
-    url: Annotated[str, typer.Argument(
-        help="Google Sheet URL")] = configData["gs_url"]
+    url: Annotated[str, typer.Argument(help="Google Sheet URL")] = configData["gs_url"]
 ):
     print(f"Opening Google Sheet: {url}...")
     webbrowser.open(url)
@@ -32,16 +32,13 @@ def gs(
 
 @app.command()
 def pdf(
-    cov: Annotated[str, typer.Argument(
-        help="Covidence number")],
-    page: Annotated[str, typer.Option(
-        help="Page number")] = ""
-
+    cov: Annotated[str, typer.Argument(help="Covidence number")],
+    page: Annotated[str, typer.Option(help="Page number")] = "",
 ):
     pdf_path = None
     pdf_dir = Path.cwd() / "studies_pdf"
     for file_name in os.listdir(pdf_dir):
-        if file_name.startswith(cov+"_"):
+        if file_name.startswith(cov + "_"):
             pdf_path = os.path.join(pdf_dir, file_name)
             break
 
@@ -71,8 +68,9 @@ def pdf(
 
 @app.command()
 def db(
-    sql: Annotated[str, typer.Argument(
-        help="Name of SQLite database")] = configData["sqlite_db"]
+    sql: Annotated[str, typer.Argument(help="Name of SQLite database")] = configData[
+        "sqlite_db"
+    ]
 ):
     print(f"Opening SQLite database: {sql}...")
 
