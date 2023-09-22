@@ -2,19 +2,7 @@
 # SLRsLittleHelper
 
 ```
-# python3.10 ./slh.py extract --metadata "CovidenceNumber,Authors,Year,Title,DOI,Abstract"
-```
-
-```
-# python3.10 ./slh.py extract --filename "#CovidenceNumber_LastName_LastName2[et_al]_Year"
-```
-
-```
-# python3.10 ./slh.py extract --citation "apa7"
-```
-
-```
-# python3.10 ./slh.py rename
+# slh --help
 ```
 
 ## Google APP Script to add links to drive files

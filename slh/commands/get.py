@@ -22,6 +22,13 @@ def info(
 
 
 @app.command()
+def scholar(
+    term: Annotated[str, typer.Argument(help="Search term")],
+):
+    print(f"Scholar {term}...")
+
+
+@app.command()
 # themes table: id, color, hex, term
 # Color = Theme = annotation (Topic) defined in Config.yaml e.g "Theme1": "Blue:Challenges in AI Laws"
 # get theme [red] --dist --cov --term --wide --output json/yaml/csv
