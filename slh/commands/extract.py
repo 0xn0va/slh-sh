@@ -1,4 +1,4 @@
-from .config import load_config
+from slh.config import load_config
 import typer
 from typing_extensions import Annotated
 import pandas as pd

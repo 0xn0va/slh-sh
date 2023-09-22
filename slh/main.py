@@ -1,19 +1,18 @@
 from pathlib import Path
 import typer
 from rich import print
-# import json
 import yaml
 import time
 import os
 
 global_config_path: Path = Path.cwd() / "config.yaml"
 if global_config_path.is_file():
-    import commands.extract as extract
-    import commands.get as get
-    import commands.add as add
-    import commands.go as go
-    import commands.sync as sync
-    import commands.self as self
+    import slh.commands.extract as extract
+    import slh.commands.get as get
+    import slh.commands.add as add
+    import slh.commands.go as go
+    import slh.commands.sync as sync
+    import slh.commands.self as self
 else:
     print(
         '''

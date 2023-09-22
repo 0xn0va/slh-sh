@@ -1,7 +1,7 @@
 import typer
 from typing_extensions import Annotated
 import sqlite3 as sql
-from .config import load_config
+from slh.config import load_config
 import csv as csvimport
 from rich import print
 from rich.progress import track

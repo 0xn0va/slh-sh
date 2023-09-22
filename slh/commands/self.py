@@ -1,4 +1,4 @@
-from .config import load_config
+from slh.config import load_config
 import typer
 from typing_extensions import Annotated
 from rich import print
@@ -30,3 +30,8 @@ def restore():
 @app.command()
 def logs():
     print("Logs...")
+
+
+@app.command()
+def list():
+    print("List all commands...")
