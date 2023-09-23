@@ -11,7 +11,7 @@ from rich import print
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 
-from slh.config import load_config
+from slh.utils.config import load_config
 
 # import pandas as pd
 # import requests

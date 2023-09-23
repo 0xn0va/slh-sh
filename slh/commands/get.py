@@ -6,32 +6,17 @@ import json
 import yaml
 import sqlite3 as sql
 
-from itertools import groupby
 from pathlib import Path
 from rich import print
 from typing_extensions import Annotated
 
 # from scholarly import scholarly
 
-from slh.config import load_config
+from slh.utils.config import load_config
+from slh.utils.file import get_file_path
 
 app = typer.Typer()
 configData = load_config()
-
-
-def print_pdf_text(page, rect):
-    """Return text containted in the given rectangular highlighted area.
-
-    Args:
-        page (fitz.page): the associated page.
-        rect (fitz.Rect): rectangular highlighted area.
-    """
-    words = page.get_text("words")  # list of words on page
-    words.sort(key=lambda w: (w[3], w[0]))  # ascending y, then x
-    mywords = [w for w in words if fitz.Rect(w[:4]).intersects(rect)]
-    group = groupby(mywords, key=lambda w: w[3])
-    for y1, gwords in group:
-        print(" ".join(w[4] for w in gwords))
 
 
 #
@@ -107,20 +92,7 @@ def dist(
     all: Annotated[bool, typer.Option(help="All")] = False,
     db: Annotated[bool, typer.Option(help="Database")] = False,
 ):
-    # get the file path for cov number
-    pdf_dir = Path.cwd() / configData["pdf_path"]
-    pdf_path = None
-    pdf_cov = None
-    # open a file if first element matches covidence number
-    for file_name in os.listdir(pdf_dir):
-        pdf_cov = re.findall(r"\d+", file_name)
-        if pdf_cov and pdf_cov[0] == cov:
-            pdf_path = os.path.join(pdf_dir, file_name)
-            break
-
-    if pdf_path is None:
-        print(f"PDF not found for {cov}")
-        return
+    pdf_path = get_file_path(cov)
 
     # search the term in the pdf file text and print the distribution of the term
     doc = fitz.open(pdf_path)

@@ -1,12 +1,12 @@
 import typer
-import os
 import webbrowser
 
 from pathlib import Path
 from rich import print
 from typing_extensions import Annotated
 
-from slh.config import load_config
+from slh.utils.config import load_config
+from slh.utils.file import get_file_path
 
 app = typer.Typer()
 configData = load_config()
@@ -33,14 +33,8 @@ def pdf(
     cov: Annotated[str, typer.Argument(help="Covidence number")] = "",
     # page: Annotated[str, typer.Option(help="Page number")] = "",
 ):
-    pdf_path = None
-    pdf_dir = Path.cwd() / configData["pdf_path"]
-
-    for file_name in os.listdir(pdf_dir):
-        if file_name.startswith(cov + "_"):
-            pdf_path = os.path.join(pdf_dir, file_name)
-            break
-
+    pdf_path = get_file_path(cov)
+    print(pdf_path)
     if pdf_path is None:
         print(f"PDF not found for {cov}")
         typer.Exit()
@@ -78,5 +72,5 @@ def db(
 
     if sql_path is None:
         print(f"SQLite database not found")
-        sys.exit()
+        typer.Exit()
     webbrowser.open(sql_path.as_uri())

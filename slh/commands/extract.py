@@ -9,31 +9,18 @@ import sqlite3 as sql
 
 from rich import print
 from pathlib import Path
-from itertools import groupby
 from bs4 import BeautifulSoup
 from typing_extensions import Annotated
 from pdfminer.high_level import extract_text
 
-from slh.config import load_config
+from slh.utils.config import load_config
+from slh.utils.pdf import print_pdf_text, rgb_to_hex
+from slh.utils.file import get_file_path, fileNameGenerator
 
 
 app = typer.Typer()
 config_path = Path.cwd() / "config.yaml"
 configData = load_config()
-
-
-def fileNameGenerator(covidenceNumber: str, authors: str, year: str) -> list[str]:
-    if ";" not in authors:
-        lastName: str = authors.split(",")[0].strip()
-        name: str = f"{covidenceNumber}_{lastName}_{year}"
-    elif authors.count(";") == 1:
-        lastName1: str = authors.split(";")[0].split(",")[0].strip()
-        lastName2: str = authors.split(";")[1].split(",")[0].strip()
-        name: str = f"{covidenceNumber}_{lastName1}_{lastName2}_{year}"
-    elif authors.count(";") > 1:
-        lastName: str = authors.split(";")[0].split(",")[0].strip()
-        name = f"{covidenceNumber}_{lastName}_et_al_{year}"
-    return name
 
 
 # TODO: make arguments and configs both accesible e.g. --sqlite
@@ -374,8 +361,9 @@ def keywords(
     if all:
         all_keywords = []
         for file_name in os.listdir(pdf_dir):
-            cov = file_name.split("_")[0]
-            pdf_path = os.path.join(pdf_dir, file_name)
+            cov = file_name.split("_")[0].remove("#")
+            pdf_path = get_file_path(cov)
+            # pdf_path = os.path.join(pdf_dir, file_name)
             print(f"Extracting keywords of: {pdf_path}...")
             text = extract_text(pdf_path)
             regex = r"(?is)(keyword.*?)(?:(?:\r*\n){2})"
@@ -409,14 +397,15 @@ def keywords(
 
     elif cov != "":
         # open a file if first element matches covidence number
-        for file_name in os.listdir(pdf_dir):
-            if file_name.startswith(cov + "_"):
-                pdf_path = os.path.join(pdf_dir, file_name)
-                break
+        # for file_name in os.listdir(pdf_dir):
+        #     if file_name.startswith(cov + "_"):
+        #         pdf_path = os.path.join(pdf_dir, file_name)
+        #         break
 
-        if pdf_path is None:
-            print(f"PDF not found for {cov}")
-            return
+        # if pdf_path is None:
+        #     print(f"PDF not found for {cov}")
+        #     return
+        pdf_path = get_file_path(cov)
 
         text = extract_text(pdf_path)
 
@@ -462,19 +451,7 @@ def annots(
 ):
     print(f"Fetching Annotations of {color} (themes,topic,colored texts) from {cov}...")
 
-    # get the file path for cov number
-    pdf_dir = Path.cwd() / configData["pdf_path"]
-    pdf_path = None
-
-    # open a file if first element matches covidence number
-    for file_name in os.listdir(pdf_dir):
-        if file_name.startswith(cov + "_"):
-            pdf_path = os.path.join(pdf_dir, file_name)
-            break
-
-    if pdf_path is None:
-        print(f"PDF not found for {cov}")
-        return
+    pdf_path = get_file_path(cov)
 
     # TODO: make this work with all pdfs
     doc = fitz.open(pdf_path)
@@ -493,36 +470,3 @@ def annots(
         print(f"info: {annot}")
         print(hex_color)
         print_pdf_text(page, annot.rect)
-
-
-def print_pdf_text(page, rect):
-    """Return text containted in the given rectangular highlighted area.
-
-    Args:
-        page (fitz.page): the associated page.
-        rect (fitz.Rect): rectangular highlighted area.
-    """
-    words = page.get_text("words")  # list of words on page
-    words.sort(key=lambda w: (w[3], w[0]))  # ascending y, then x
-    mywords = [w for w in words if fitz.Rect(w[:4]).intersects(rect)]
-    group = groupby(mywords, key=lambda w: w[3])
-    for y1, gwords in group:
-        print(" ".join(w[4] for w in gwords))
-
-
-def rgb_to_hex(rgb):
-    """Converts an RGB tuple to a hex string.
-
-    Args:
-      rgb: A tuple of 3 floats, representing the red, green, and blue components
-        of the color, in the range [0, 1].
-
-    Returns:
-      A string representing the color in hexadecimal format.
-    """
-
-    r, g, b = rgb
-    hex_r = int(r * 255)
-    hex_g = int(g * 255)
-    hex_b = int(b * 255)
-    return f"#{hex_r:02x}{hex_g:02x}{hex_b:02x}"

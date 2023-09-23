@@ -5,7 +5,7 @@ import csv as csvimport
 from typing_extensions import Annotated
 from rich import print
 
-from slh.config import load_config
+from slh.utils.config import load_config
 
 app = typer.Typer()
 configData = load_config()
