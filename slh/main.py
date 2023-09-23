@@ -75,7 +75,7 @@ def saveConfigFile(
         # Name of the default SQLite Database file
         "sqlite_db": sqlite_db,
         # Name of the default PDF folder
-        "studies_pdf": "studies_pdf",
+        "pdf_path": "studies_pdf",
         # Number of the header row in Google Sheet
         "gs_header_row_number": "3",
         # Name of the Studies sheet in Google Sheet
@@ -140,7 +140,7 @@ def saveConfigFile(
 # html_export - Name of the default HTML file
 # google_credentials - Name of the default Google Credentials file
 # sqlite_db - Name of the default SQLite Database file
-# studies_pdf - Name of the default PDF folder
+# pdf_path - Full path of the PDF folder e.g /Users/Sara/Downloads/uni/Thesis/SLR_Thesis_Lib
 # gs_header_row_number - Number of the header row in Google Sheet
 # gs_studies_sheet_name - Name of the Studies sheet in Google Sheet
 # gs_studies_id_column_name - Name of the ID column in Google Sheet

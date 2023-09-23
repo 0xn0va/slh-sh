@@ -2,17 +2,16 @@ import typer
 import os
 import re
 import time
+import fitz
 import requests
 import pandas as pd
 import sqlite3 as sql
+
+from rich import print
 from pathlib import Path
 from itertools import groupby
 from bs4 import BeautifulSoup
-
 from typing_extensions import Annotated
-from rich import print
-
-import fitz
 from pdfminer.high_level import extract_text
 
 from slh.config import load_config
@@ -184,9 +183,9 @@ def dl(
             help="HTML export containing Covidence Number and Download Links"
         ),
     ] = configData["html_export"],
-    pdfdir: Annotated[
-        str, typer.Argument(help="Directory to save PDFs")
-    ] = "studies_pdf",
+    pdfdir: Annotated[str, typer.Argument(help="Directory to save PDFs")] = configData[
+        "pdf_path"
+    ],
     idelement: Annotated[
         str,
         typer.Argument(
@@ -205,7 +204,7 @@ def dl(
         Press Enter to download PDFs:
 
         HTML export File: {html}
-        Study Folder: studies_pdf
+        Study Folder: {pdfdir}
 
         Press Ctrl+C to cancel.
         """
@@ -325,9 +324,11 @@ def filename(
         )
         conn.commit()
         if rename:
-            pdf_path = os.path.join("studies_pdf", f"{covidenceNumber}.pdf")
+            pdf_path = os.path.join(configData["pdf_path"], f"{covidenceNumber}.pdf")
             if os.path.exists(pdf_path) and not pdf_path.endswith(f"{fileName}.pdf"):
-                os.rename(pdf_path, os.path.join("studies_pdf", f"{fileName}.pdf"))
+                os.rename(
+                    pdf_path, os.path.join(configData["pdf_path"], f"{fileName}.pdf")
+                )
             else:
                 print("file exists")
         fileNames.append(fileName)
@@ -340,7 +341,7 @@ def filename(
     )
     if rename:
         print(
-            f"Renamed {len(fileNames)} PDFs in studies_pdf folder with the filenames..."
+            f"Renamed {len(fileNames)} PDFs in {configData['pdf_path']} folder with the filenames..."
         )
 
 
@@ -348,7 +349,10 @@ def filename(
 def keywords(
     cov: Annotated[str, typer.Option(help="Covidence number to extract keywords")] = "",
     all: Annotated[
-        bool, typer.Option(help="Extract keywords from all PDFs in studies_pdf folder")
+        bool,
+        typer.Option(
+            help="Extract keywords from all PDFs in configData['pdf_path'] folder"
+        ),
     ] = False,
     db: Annotated[bool, typer.Option(help="SQLite database file")] = False,
 ):
@@ -364,7 +368,7 @@ def keywords(
             curr.execute("ALTER TABLE studies ADD COLUMN Keywords TEXT")
         conn.commit()
 
-    pdf_dir = Path.cwd() / "studies_pdf"
+    pdf_dir = Path.cwd() / configData["pdf_path"]
     pdf_path = None
 
     if all:
@@ -458,8 +462,22 @@ def annots(
 ):
     print(f"Fetching Annotations of {color} (themes,topic,colored texts) from {cov}...")
 
+    # get the file path for cov number
+    pdf_dir = Path.cwd() / configData["pdf_path"]
+    pdf_path = None
+
+    # open a file if first element matches covidence number
+    for file_name in os.listdir(pdf_dir):
+        if file_name.startswith(cov + "_"):
+            pdf_path = os.path.join(pdf_dir, file_name)
+            break
+
+    if pdf_path is None:
+        print(f"PDF not found for {cov}")
+        return
+
     # TODO: make this work with all pdfs
-    doc = fitz.open("#59_Alaassar_et_al_2023.pdf")
+    doc = fitz.open(pdf_path)
 
     # TODO: make this work with all pages
     page = doc[0]
@@ -469,14 +487,15 @@ def annots(
         if annot.type[1] == "Highlight":
             annotColor = annot.colors["stroke"]
             hex_color = rgb_to_hex(annotColor)
-            # TODO: translate hex color to color name based on Themes/Topics
+            # TODO: translate hex color to color name based on Themes/Topics from db,
+            # check if config file is sync first
         print("------------------")
         print(f"info: {annot}")
         print(hex_color)
-        print_hightlight_text(page, annot.rect)
+        print_pdf_text(page, annot.rect)
 
 
-def print_hightlight_text(page, rect):
+def print_pdf_text(page, rect):
     """Return text containted in the given rectangular highlighted area.
 
     Args:

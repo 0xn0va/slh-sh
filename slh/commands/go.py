@@ -1,12 +1,10 @@
 import typer
 import os
-import sys
 import webbrowser
-import subprocess
-from pathlib import Path
 
-from typing_extensions import Annotated
+from pathlib import Path
 from rich import print
+from typing_extensions import Annotated
 
 from slh.config import load_config
 
@@ -32,11 +30,12 @@ def gs(
 
 @app.command()
 def pdf(
-    cov: Annotated[str, typer.Argument(help="Covidence number")],
-    page: Annotated[str, typer.Option(help="Page number")] = "",
+    cov: Annotated[str, typer.Argument(help="Covidence number")] = "",
+    # page: Annotated[str, typer.Option(help="Page number")] = "",
 ):
     pdf_path = None
-    pdf_dir = Path.cwd() / "studies_pdf"
+    pdf_dir = Path.cwd() / configData["pdf_path"]
+
     for file_name in os.listdir(pdf_dir):
         if file_name.startswith(cov + "_"):
             pdf_path = os.path.join(pdf_dir, file_name)
@@ -44,26 +43,27 @@ def pdf(
 
     if pdf_path is None:
         print(f"PDF not found for {cov}")
-        sys.exit()
-
-    if page != "":
-        # open the pdf file with the page number with local pdf reader
-        # open_pdf(cov, page)
-        print(pdf_path)
-        # check if os is windows
-        if os.name == "nt":
-            subprocess.run(["acroread", "--goto", str(page), pdf_path])
-        # check if os is mac
-        # elif os.name == "darwin":
-        #     subprocess.run(["open", "-a", "Preview", pdf_path])
-        # check if os is linux
-        # elif os.name == "posix":
-        #     subprocess.run(["xdg-open", pdf_path])
-        else:
-            print("OS not supported")
-
+        typer.Exit()
     else:
         typer.launch(pdf_path)
+    ##
+    ## Opens a PDF on certain page
+    ##
+    # if page != "":
+    #     # open the pdf file with the page number with local pdf reader
+    #     # open_pdf(cov, page)
+    #     print(pdf_path)
+    #     # check if os is windows
+    #     if os.name == "nt":
+    #         subprocess.run(["acroread", "--goto", str(page), pdf_path])
+    #     # check if os is mac
+    #     # elif os.name == "darwin":
+    #     #     subprocess.run(["open", "-a", "Preview", pdf_path])
+    #     # check if os is linux
+    #     # elif os.name == "posix":
+    #     #     subprocess.run(["xdg-open", pdf_path])
+    #     else:
+    #         print("OS not supported")
 
 
 @app.command()

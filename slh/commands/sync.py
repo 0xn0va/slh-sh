@@ -370,6 +370,7 @@ def config():
             (id INTEGER PRIMARY KEY AUTOINCREMENT,
             studiesID INTEGER NOT NULL,
             term TEXT NOT NULL,
+            pageNum TEXT NOT NULL,
             count INTEGER NOT NULL,
             description TEXT NOT NULL,
             FOREIGN KEY(studiesID) REFERENCES studies(id));"""
@@ -386,6 +387,7 @@ def config():
             # insert theme into database
             hex = configData["themes"][theme]["hex"]
             term = configData["themes"][theme]["term"]
+            # TODO: add study (cov) and count columns
             curr.execute(
                 f"INSERT INTO themes (color, hex, term) VALUES ('{theme}', '{hex}', '{term}');"
             )
