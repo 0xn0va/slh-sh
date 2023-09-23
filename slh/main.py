@@ -1,10 +1,12 @@
 import typer
+import sys
+
 from pathlib import Path
 from rich import print
 
 
-global_config_path: Path = Path.cwd() / "config.yaml"
-if global_config_path.is_file():
+config: Path = Path.cwd() / "config.yaml"
+if config.is_file():
     import slh.commands.extract as extract
     import slh.commands.get as get
     import slh.commands.add as add
@@ -14,25 +16,26 @@ if global_config_path.is_file():
 else:
     print(
         """
-        [bold red]Alert![/bold red]
+        [bold green]Good day researcher :wave:[/bold green]
 
-        Config file does not exist in current directory.
+        The [red]config.yaml[/red] file does not exist in the current directory.
 
-        Run [yellow]slh init[/yellow] to create one :rocket:
+            - Run [yellow]slh self init[/yellow] to initialize a new SLR project :rocket:
+            - [blue]https://github.com/xN0Vx/slh[/blue]
         """
     )
+    sys.exit(1)
 
 
 app = typer.Typer()
 
 
-if global_config_path.is_file():
-    app.add_typer(extract.app, name="extract")
-    app.add_typer(get.app, name="get")
-    app.add_typer(add.app, name="add")
-    app.add_typer(go.app, name="go")
-    app.add_typer(sync.app, name="sync")
-    app.add_typer(self.app, name="self")
+app.add_typer(extract.app, name="extract")
+app.add_typer(get.app, name="get")
+app.add_typer(add.app, name="add")
+app.add_typer(go.app, name="go")
+app.add_typer(sync.app, name="sync")
+app.add_typer(self.app, name="self")
 
 
 if __name__ == "__main__":
