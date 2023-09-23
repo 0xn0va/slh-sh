@@ -21,12 +21,8 @@ configData = load_config()
 
 #
 # PorP output format
+# Cites	Authors	Title	Year	Source	Publisher	ArticleURL	CitesURL	GSRank	QueryDate	Type	DOI	ISSN	CitationURL	
 #
-# 0,"X Chen","Information moderation principle on the regulatory sandbox",2023,"Economic Change and Restructuring","Springer","https://link.springer.com/article/10.1007/s10644-022-09415-2","",31,"2023-09-23 17:00:55","","10.1007/s10644-022-09415-2","","",,,,,0,0.00,0,1,1,"… the regulatory sandbox … regulatory sandbox (Arner et al. 2016; Allen 2017; Yang 2018; Zhang and Chen 2018), we examine the information moderation principle of a regulatory sandbox …","","https://scholar.google.com/scholar?q=related:ds6rWLL7zU4J:scholar.google.com/&scioq=intitle:regulatory+intitle:sandbox&hl=en&as_sdt=2007"
-
-# Cites	Authors	Title	Year	Source	Publisher	ArticleURL	CitesURL	GSRank	QueryDate	Type	DOI	ISSN	CitationURL	Volume	Issue	StartPage	EndPage	ECC	CitesPerYear	CitesPerAuthor	AuthorCount	Age	Abstract	FullTextURL	RelatedURL
-# 0	X Chen	Information moderation principle on the regulatory sandbox	2023	Economic Change and Restructuring	Springer	https://link.springer.com/article/10.1007/s10644-022-09415-2		31	2023-09-23 17:00:55		10.1007/s10644-022-09415-2							0	0.00	0	1	1	… the regulatory sandbox … regulatory sandbox (Arner et al. 2016; Allen 2017; Yang 2018; Zhang and Chen 2018), we examine the information moderation principle of a regulatory sandbox …		https://scholar.google.com/scholar?q=related:ds6rWLL7zU4J:scholar.google.com/&scioq=intitle:regulatory+intitle:sandbox&hl=en&as_sdt=2007
-
 # Chen, X (2023). Information moderation principle on the regulatory sandbox. Economic Change and Restructuring, Springer, <https://doi.org/10.1007/s10644-022-09415-2>
 # [
 # 	{

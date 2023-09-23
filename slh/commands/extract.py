@@ -26,7 +26,7 @@ configData = load_config()
 # TODO: make arguments and configs both accesible e.g. --sqlite
 
 
-@app.command()
+@app.command("cit")
 # TODO: make a func from name generator from filename command so
 # this can create cit from authors column not filename user can choose if from db or csv
 def cit(

@@ -11,7 +11,7 @@ app = typer.Typer()
 configData = load_config()
 
 
-@app.command()
+@app.command("csv")
 # TODO: Adding new CSV file creates new DB, asks for DB name, and adds them to Config.yaml
 def csv(
     csv: Annotated[
