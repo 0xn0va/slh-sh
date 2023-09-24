@@ -18,7 +18,7 @@ from slh.utils.config import load_config
 # from gspread_dataframe import get_as_dataframe, set_with_dataframe
 
 app = typer.Typer()
-configData = load_config()
+config_data = load_config()
 
 
 def gs_auth():
@@ -29,7 +29,7 @@ def gs_auth():
             "https://www.googleapis.com/auth/drive",
         ]
         credentials = ServiceAccountCredentials.from_json_keyfile_name(
-            configData["google_credentials"], scope
+            config_data["google_credentials"], scope
         )
         gc = gspread.authorize(credentials)
         return gc
@@ -58,12 +58,12 @@ def get_worksheet_by_name(gs, sheet):
 
 
 def update_sheet_cell(
-    ws, id_col_values, id_col_value, updating_col_index_header, dbRes
+    ws, id_col_values, id_col_value, updating_col_index_header, db_res
 ):
     ws.update_cell(
-        id_col_values.index(id_col_value) + 1, updating_col_index_header + 1, dbRes
+        id_col_values.index(id_col_value) + 1, updating_col_index_header + 1, db_res
     )
-    print(f"Updated {id_col_value} with '{dbRes}'")
+    print(f"Updated {id_col_value} with '{db_res}'")
 
 
 @app.command()
@@ -71,13 +71,13 @@ def update(
     col: Annotated[str, typer.Option(help="Column name in Google Sheet")] = "",
     # TODO: handle range when passed by user as cov, Use a number, a range e.g. 1-20 or multiple numbers e.g 1,30,2
     cov: Annotated[str, typer.Option(help="Covidence number as ID")] = "",
-    sheet: Annotated[str, typer.Option(help="Name of the Sheet")] = configData[
+    sheet: Annotated[str, typer.Option(help="Name of the Sheet")] = config_data[
         "gs_studies_sheet_name"
     ],
-    gs: Annotated[str, typer.Option(help="Google Sheet URL")] = configData["gs_url"],
+    gs: Annotated[str, typer.Option(help="Google Sheet URL")] = config_data["gs_url"],
     idcol: Annotated[
         str, typer.Option(help="Column name that considered as ID e.g 'Covidence #'")
-    ] = configData["gs_studies_id_column_name"],
+    ] = config_data["gs_studies_id_column_name"],
     apply: Annotated[bool, typer.Option(help="Apply changes to Google Sheet")] = False,
     allcol: Annotated[bool, typer.Option(help="Update all data in column")] = False,
     alltable: Annotated[
@@ -92,7 +92,7 @@ def update(
     if alltable == "" and apply:
         ws = get_worksheet_by_name(gs, sheet)
 
-        header_row: int = int(configData["gs_header_row_number"])
+        header_row: int = int(config_data["gs_header_row_number"])
         header_row_values = ws.row_values(header_row)
         # get index number of provided Column e.g "Keywords" in header_values
         updating_col_index_header = header_row_values.index(col)
@@ -100,7 +100,7 @@ def update(
         # get all values of id_col_index from header_row to the last row
         id_col_values = ws.col_values(id_col_index + 1)
 
-    conn: sql.connect = sql.connect(configData["sqlite_db"])
+    conn: sql.connect = sql.connect(config_data["sqlite_db"])
     curr: sql.Cursor = conn.cursor()
 
     if cov != "" and col != "" and "," not in cov and "-" not in cov:
@@ -114,15 +114,15 @@ def update(
             )
 
         curr.execute(f"SELECT {col} FROM studies WHERE Covidence = '{cov}'")
-        dbRes: str = curr.fetchone()
+        db_res: str = curr.fetchone()
 
-        if dbRes == None:
+        if db_res == None:
             print(f"Study {cov} not found in database!")
             sys.exit()
-        elif dbRes[0] != None:
+        elif db_res[0] != None:
             if apply:
                 update_sheet_cell(
-                    ws, id_col_values, cov, updating_col_index_header, dbRes[0]
+                    ws, id_col_values, cov, updating_col_index_header, db_res[0]
                 )
                 print(
                     """
@@ -134,7 +134,7 @@ def update(
                     """
                 )
             else:
-                print(f"Would update {cov} with '{dbRes[0]}'")
+                print(f"Would update {cov} with '{db_res[0]}'")
         else:
             print(f"Empty {col} for {cov}, skipping...")
 
@@ -151,24 +151,24 @@ def update(
             curr.execute(
                 f"SELECT {col} FROM studies WHERE Covidence = '{id_col_value}'"
             )
-            dbRes: str = curr.fetchone()
+            db_res: str = curr.fetchone()
             # check if SELECT found any value
-            if dbRes == None:
+            if db_res == None:
                 print(f"Study {id_col_value} not found in database!")
                 continue
-            elif dbRes[0] != None:
+            elif db_res[0] != None:
                 if apply:
                     update_sheet_cell(
                         ws,
                         id_col_values,
                         id_col_value,
                         updating_col_index_header,
-                        dbRes[0],
+                        db_res[0],
                     )
                     # sleep for 3 seconds to avoid Google API rate limit
                     time.sleep(3)
                 else:
-                    print(f"Would update {id_col_value} with '{dbRes[0]}'")
+                    print(f"Would update {id_col_value} with '{db_res[0]}'")
             else:
                 print(f"Empty {col} for {id_col_value}, skipping...")
 
@@ -196,16 +196,16 @@ def update(
 
             # get column from studies table from sqlite db
             curr.execute(f"PRAGMA table_info({alltable})")
-            colNames = curr.fetchall()
-            colNames = [tup[1] for tup in colNames]
-            new_ws.append_row(colNames)
+            col_names = curr.fetchall()
+            col_names = [tup[1] for tup in col_names]
+            new_ws.append_row(col_names)
             time.sleep(3)
 
             # get all rows in studies table from sqlite db
             curr.execute(f"SELECT * FROM {alltable}")
-            dbRes: str = curr.fetchall()
+            db_res: str = curr.fetchall()
             # add all data from studies table of sqlite dababase to the new Worksheet
-            for row in dbRes:
+            for row in db_res:
                 row = list(row)
                 new_ws.append_row(row)
                 print(f":white_check_mark: {row[0]}")
@@ -247,7 +247,7 @@ def update(
         #             if cov in id_col_value:
         #                 print(cov)
         #                 update_sheet_cell(
-        #                     ws, id_col_values, id_col_value, updating_col_index_header, dbRes[0])
+        #                     ws, id_col_values, id_col_value, updating_col_index_header, db_res[0])
         #                 # sleep for 3 seconds to avoid Google API rate limit
         #                 time.sleep(3)
         #             else:
@@ -280,20 +280,20 @@ def config():
 
     Creates the needed tables if not exists.
     """
-    print(f"Syncing config.yaml to database: {configData['sqlite_db']}...")
+    print(f"Syncing config.yaml to database: {config_data['sqlite_db']}...")
 
-    conn: sql.connect = sql.connect(configData["sqlite_db"])
+    conn: sql.connect = sql.connect(config_data["sqlite_db"])
     curr: sql.Cursor = conn.cursor()
 
-    # iterate over Themes in configData and insert into database
-    for theme in configData["themes"]:
+    # iterate over Themes in config_data and insert into database
+    for theme in config_data["themes"]:
         # check if theme exists in database
         curr.execute(f"SELECT id FROM themes WHERE color = '{theme}'")
-        dbRes: str = curr.fetchone()
-        if dbRes == None:
+        db_res: str = curr.fetchone()
+        if db_res == None:
             # insert theme into database
-            hex = configData["themes"][theme]["hex"]
-            term = configData["themes"][theme]["term"]
+            hex = config_data["themes"][theme]["hex"]
+            term = config_data["themes"][theme]["term"]
             # TODO: add study (cov) and totalCount columns
             curr.execute(
                 f"INSERT INTO themes (color, hex, term) VALUES ('{theme}', '{hex}', '{term}');"
@@ -303,14 +303,14 @@ def config():
         else:
             print(f"Theme {theme} already exists in database!")
 
-    # iterate over Searches in configData and insert into database
-    for search in configData["searches"]:
+    # iterate over Searches in config_data and insert into database
+    for search in config_data["searches"]:
         # check if search exists in database
         curr.execute(f"SELECT id FROM searches WHERE name = '{search}'")
-        dbRes: str = curr.fetchone()
-        if dbRes == None:
+        db_res: str = curr.fetchone()
+        if db_res == None:
             # insert search into database
-            description = configData["searches"][search]
+            description = config_data["searches"][search]
             curr.execute(
                 f"INSERT INTO searches (name, description) VALUES ('{search}', '{description}');"
             )
@@ -319,14 +319,14 @@ def config():
         else:
             print(f"Search {search} already exists in database!")
 
-    # iterate over Sources in configData and insert into database
-    for source in configData["sources"]:
+    # iterate over Sources in config_data and insert into database
+    for source in config_data["sources"]:
         # check if source exists in database
         curr.execute(f"SELECT id FROM sources WHERE name = '{source}'")
-        dbRes: str = curr.fetchone()
-        if dbRes == None:
+        db_res: str = curr.fetchone()
+        if db_res == None:
             # insert source into database
-            description = configData["sources"][source]
+            description = config_data["sources"][source]
             curr.execute(
                 f"INSERT INTO sources (name, description) VALUES ('{source}', '{description}');"
             )

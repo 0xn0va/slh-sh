@@ -2,17 +2,17 @@ import sqlite3 as sql
 
 from slh.utils.config import load_config
 
-configData = load_config()
+config_data = load_config()
 
-conn: sql.connect = sql.connect(configData["sqlite_db"])
+conn: sql.connect = sql.connect(config_data["sqlite_db"])
 curr: sql.Cursor = conn.cursor()
 
 
 def create_db():
     # check if Themes table exists
     curr.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='themes'")
-    dbRes: str = curr.fetchone()
-    if dbRes == None:
+    db_res: str = curr.fetchone()
+    if db_res == None:
         print(f"Themes table not found in database!")
         # create Themes table
         curr.execute(
@@ -32,8 +32,8 @@ def create_db():
     curr.execute(
         "SELECT name FROM sqlite_master WHERE type='table' AND name='searches'"
     )
-    dbRes: str = curr.fetchone()
-    if dbRes == None:
+    db_res: str = curr.fetchone()
+    if db_res == None:
         print(f"Searches table not found in database!")
         # create Searches table
         curr.execute(
@@ -47,8 +47,8 @@ def create_db():
 
     # check if Sources table exists
     curr.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='sources'")
-    dbRes: str = curr.fetchone()
-    if dbRes == None:
+    db_res: str = curr.fetchone()
+    if db_res == None:
         print(f"Sources table not found in database!")
         # create Sources table
         curr.execute(
@@ -65,8 +65,8 @@ def create_db():
     curr.execute(
         "SELECT name FROM sqlite_master WHERE type='table' AND name='annotations'"
     )
-    dbRes: str = curr.fetchone()
-    if dbRes == None:
+    db_res: str = curr.fetchone()
+    if db_res == None:
         print(f"Annotations table not found in database!")
         # create Annotations table
         curr.execute(
@@ -88,8 +88,8 @@ def create_db():
     curr.execute(
         "SELECT name FROM sqlite_master WHERE type='table' AND name='distribution'"
     )
-    dbRes: str = curr.fetchone()
-    if dbRes == None:
+    db_res: str = curr.fetchone()
+    if db_res == None:
         print(f"Distribution table not found in database!")
         # create Distribution table
         curr.execute(

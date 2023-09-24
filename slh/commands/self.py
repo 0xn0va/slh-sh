@@ -10,7 +10,7 @@ from slh.utils.db import create_db
 
 
 app = typer.Typer()
-configData = load_config()
+config_data = load_config()
 
 default_project_name = (
     f"slr-ai-thesis-{time.strftime('%Y')}-{time.strftime('%m')}-{time.strftime('%d')}"

@@ -48,7 +48,7 @@ def extract_cit():
             print(f"{row} is none")
             authorNoneRemoved.append(row)
         else:
-            fileName: str = fileNameGenerator(row[0], row[1], row[2])
+            fileName: str = file_name_generator(row[0], row[1], row[2])
 
             fileName = fileName.split("_")
 
@@ -234,7 +234,9 @@ def extract_filename(csv, rename=False):
     file_names = []
     for i in csv_df["Authors"]:
         # select covidence # from csv_df where authors is i
-        covidence_number: str = csv_df.loc[csv_df["Authors"] == i]["Covidence #"].values[0]
+        covidence_number: str = csv_df.loc[csv_df["Authors"] == i][
+            "Covidence #"
+        ].values[0]
         # select publicaiton year from csv_df where authors is i
         year: str = csv_df.loc[csv_df["Authors"] == i]["Published Year"].values[0]
 

@@ -16,7 +16,7 @@ from slh.utils.config import load_config
 from slh.utils.file import get_file_path
 
 app = typer.Typer()
-configData = load_config()
+config_data = load_config()
 
 
 @app.command()
@@ -30,12 +30,12 @@ def info(
         print(
             f"""
 
-There are {len(os.listdir(configData["pdf_path"]))} PDFs in {configData["pdf_path"]}
+There are {len(os.listdir(config_data["pdf_path"]))} PDFs in {config_data["pdf_path"]}
 
 """
         )
         if not wide:
-            for file_name in os.listdir(configData["pdf_path"]):
+            for file_name in os.listdir(config_data["pdf_path"]):
                 if not file_name.startswith("."):
                     print(file_name)
         else:

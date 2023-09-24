@@ -9,12 +9,12 @@ from slh.utils.config import load_config
 from slh.utils.file import get_file_path
 
 app = typer.Typer()
-configData = load_config()
+config_data = load_config()
 
 
 @app.command()
 def gd(
-    url: Annotated[str, typer.Argument(help="Google Drive URL")] = configData["gd_url"]
+    url: Annotated[str, typer.Argument(help="Google Drive URL")] = config_data["gd_url"]
 ):
     print(f"Opening Google Drive: {url}...")
     webbrowser.open(url)
@@ -22,7 +22,7 @@ def gd(
 
 @app.command()
 def gs(
-    url: Annotated[str, typer.Argument(help="Google Sheet URL")] = configData["gs_url"]
+    url: Annotated[str, typer.Argument(help="Google Sheet URL")] = config_data["gs_url"]
 ):
     print(f"Opening Google Sheet: {url}...")
     webbrowser.open(url)
@@ -62,7 +62,7 @@ def pdf(
 
 @app.command()
 def db(
-    sql: Annotated[str, typer.Argument(help="Name of SQLite database")] = configData[
+    sql: Annotated[str, typer.Argument(help="Name of SQLite database")] = config_data[
         "sqlite_db"
     ]
 ):
