@@ -76,7 +76,7 @@ def create_db():
             themeID INTEGER NOT NULL,
             annotation TEXT NOT NULL,
             pageNumber INTEGER NOT NULL,
-            pageImage TEXT NOT NULL,
+            text TEXT NOT NULL,
             FOREIGN KEY(studiesID) REFERENCES studies(id),
             FOREIGN KEY(themeID) REFERENCES themes(id));"""
         )

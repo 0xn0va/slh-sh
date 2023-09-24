@@ -80,12 +80,12 @@ def saveConfigFile(
         },
     }
 
-    fileYamlpath = os.path.join(".", "config.yaml")
-    if os.path.exists(fileYamlpath):
+    config_yaml_path = os.path.join(".", "config.yaml")
+    if os.path.exists(config_yaml_path):
         yes = typer.prompt(
             f"""
 
-            Config file already exists at {fileYamlpath}.
+            Config file already exists at {config_yaml_path}.
 
             Enter (y) to overwrite the file.
 
@@ -94,7 +94,7 @@ def saveConfigFile(
             """
         )
         if yes == "y":
-            with open(fileYamlpath, "w") as f:
+            with open(config_yaml_path, "w") as f:
                 f.write(
                     """#
 # Config file for slh
@@ -133,4 +133,4 @@ def saveConfigFile(
                     sort_keys=False,
                     line_break=None,
                 )
-            return f"Config file created at {fileYamlpath}"
+            return f"Config file created at {config_yaml_path}"

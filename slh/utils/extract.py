@@ -12,6 +12,7 @@ from pdfminer.high_level import extract_text
 
 from slh.utils.config import load_config
 from slh.utils.file import file_name_generator
+from slh.utils.pdf import rgb_to_hex, get_pdf_text
 
 config_data = load_config()
 
@@ -86,7 +87,7 @@ def extract_bib(csv):
     """Extracts the bibliography from the csv file and updates the bibliography column in the studies table
 
     Args:
-        csv (FILE): csv file
+        csv (file): csv file
 
     Returns:
         list: List of bibliographies
@@ -143,14 +144,14 @@ def extract_bib(csv):
 ##
 
 
-def extract_dl(html, pdf_dir, idelement, dllinkelement):
+def extract_dl(html, pdf_dir, html_id_element, html_dl_class):
     """Extracts the download link from the html file and downloads the pdf file
 
     Args:
-        html (FILE): html file name from config.yaml
+        html (file): html file name from config.yaml
         pdf_dir (str): pdf folder name from config.yaml
-        idelement (str): id element of dllinkelement name from cli option or config.yaml
-        dllinkelement (str): download link element that contains a element and a URL, from cli option or config.yaml
+        html_id_element (str): id element of html_dl_class name from cli option or config.yaml
+        html_dl_class (str): download link element that contains a element and a URL, from cli option or config.yaml
 
     Raises:
         Exception: Bad response status code, remove the section of the HTML file containing this link and try again.
@@ -163,11 +164,11 @@ def extract_dl(html, pdf_dir, idelement, dllinkelement):
 
     soup = BeautifulSoup(html_string, "html.parser")
 
-    study_headers = soup.find_all("div", class_=idelement)
+    study_headers = soup.find_all("div", class_=html_id_element)
 
     for study_header in study_headers:
         study_header_number = re.findall("#(\d+)", study_header.text)[0]
-        download_link_element = study_header.parent.find("a", class_=dllinkelement)
+        download_link_element = study_header.parent.find("a", class_=html_dl_class)
         download_link = download_link_element["href"]
 
         print(
@@ -209,8 +210,8 @@ def extract_filename(csv, rename=False):
     """Extracts the filename from the csv file and updates the filename column in the studies table
 
     Args: TODO: add name convention options
-        csv (FILE): csv file
-        rename (BOOL): rename the pdf file
+        csv (file): csv file
+        rename (bool): rename the pdf file
 
     Returns:
         LIST: List of file names
@@ -240,20 +241,20 @@ def extract_filename(csv, rename=False):
         # select publicaiton year from csv_df where authors is i
         year: str = csv_df.loc[csv_df["Authors"] == i]["Published Year"].values[0]
 
-        fileName: str = file_name_generator(covidence_number, i, year)
+        file_name: str = file_name_generator(covidence_number, i, year)
         curr.execute(
-            f"UPDATE studies SET Filename = '{fileName}' WHERE Covidence ='{covidence_number}'"
+            f"UPDATE studies SET Filename = '{file_name}' WHERE Covidence ='{covidence_number}'"
         )
         conn.commit()
         if rename:
             pdf_path = os.path.join(config_data["pdf_path"], f"{covidence_number}.pdf")
-            if os.path.exists(pdf_path) and not pdf_path.endswith(f"{fileName}.pdf"):
+            if os.path.exists(pdf_path) and not pdf_path.endswith(f"{file_name}.pdf"):
                 os.rename(
-                    pdf_path, os.path.join(config_data["pdf_path"], f"{fileName}.pdf")
+                    pdf_path, os.path.join(config_data["pdf_path"], f"{file_name}.pdf")
                 )
             else:
                 print("file exists")
-        file_names.append(fileName)
+        file_names.append(file_name)
 
     conn.close()
 
@@ -269,8 +270,8 @@ def extract_keywords(cov, pdf_path, db=False):
     """Extracts the keywords from the pdf file and updates the keywords column in the studies table
 
     Args:
-        cov (INT): Covidence number
-        pdf_path (PATH): Path to the pdf file
+        cov (int): Covidence number
+        pdf_path (path): Path to the pdf file
         db (bool, optional): Save to database? Defaults to False.
 
     Returns:
@@ -325,8 +326,51 @@ def extract_keywords(cov, pdf_path, db=False):
 ##
 
 
-def extract_annots():
-    pass
+def extract_annots(cov: int, pdf_path: str, db: bool = False):
+    doc = fitz.open(pdf_path)
+
+    # all_page_annots = {}
+    page_annots = []
+    page_number = 0
+    themeID = 0
+
+    return_list = []
+
+    for page in doc:
+        # get the paragraph text of the page the term was found in
+        page_number = page.number + 1
+        page_annots = page.annots()
+        page_annots = [annot.type[1] for annot in page_annots]
+        # all_page_annots[page_number] = page_annots
+
+        for annot in page_annots:
+            if annot.type[1] == "Highlight":
+                annot_color = annot.colors["stroke"]
+                hex_color = rgb_to_hex(annot_color)
+            page = annot["page"]
+            page_annots = annot["annots"]
+            text = get_pdf_text(page, annot)
+
+        return_list.append(f"{page_number} {hex_color} {page_annots} {text}")
+
+        if db:
+            conn: sql.connect = sql.connect(config_data["sqlite_db"])
+            curr: sql.Cursor = conn.cursor()
+            curr.execute(
+                "SELECT name FROM sqlite_master WHERE type='table' AND name='annotations'"
+            )
+            db_res = curr.fetchone()
+            if db_res == None:
+                print("Annotations Table not found in database")
+                return
+            curr.execute(
+                "INSERT INTO annotations (studiesID, themesID, annotation, pageNumber, text) VALUES (?, ?, ?, ?, ?)",
+                (cov, themeID, "", page_number, hex_color, return_list),
+            )
+            conn.commit()
+            conn.close()
+
+    return return_list
 
 
 ##

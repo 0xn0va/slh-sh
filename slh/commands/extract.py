@@ -11,7 +11,7 @@ from typing_extensions import Annotated
 from slh.utils.config import load_config
 from slh.utils.pdf import get_pdf_text, rgb_to_hex
 from slh.utils.file import get_file_path
-from slh.utils.extract_output import dist_output
+from slh.utils.extract_output import dist_output, annots_output
 from slh.utils.extract import (
     extract_cit,
     extract_bib,
@@ -106,13 +106,13 @@ def dl(
     pdfdir: Annotated[str, typer.Argument(help="Directory to save PDFs")] = config_data[
         "pdf_path"
     ],
-    idelement: Annotated[
+    html_id_element: Annotated[
         str,
         typer.Argument(
             help="Class name of the 'div' element containing Covidence Number or ID in a div"
         ),
     ] = config_data["html_id_element"],
-    dllinkelement: Annotated[
+    html_dl_class: Annotated[
         str,
         typer.Argument(
             help="Class name of the 'a' element containing the URL of the PDF"
@@ -143,7 +143,7 @@ def dl(
     if not pdf_dir.is_dir():
         pdf_dir.mkdir()
 
-    study_headers = extract_dl(html, pdf_dir, idelement, dllinkelement)
+    study_headers = extract_dl(html, pdf_dir, html_id_element, html_dl_class)
 
     print(
         f"""
@@ -231,46 +231,46 @@ def keywords(
 ##
 
 
-## TODO: add --all option to search all PDFs in the pdf_path folder
 ## TODO: add --color option to search all PDFs in the pdf_path folder
-## TODO: go through all pages
 @app.command()
 def annots(
     cov: Annotated[str, typer.Option(help="Covidence number to extract keywords")],
     color: Annotated[str, typer.Option(help="Color of the annotations to extract")],
+    all: Annotated[
+        bool, typer.Option(help="Extract annotations from all PDFs in pdf_path folder")
+    ] = False,
+    db: Annotated[bool, typer.Option(help="Save to SQLite database file")] = False,
 ):
     print(f"Fetching Annotations of {color} (themes,topic,colored texts) from {cov}...")
 
     pdf_dir = Path.cwd() / config_data["pdf_path"]
     pdf_path = None
+    page_annots = None
+    hex_color = None
 
     if all:
         for file_name in os.listdir(pdf_dir):
             cov = file_name.split("_")[0].remove("#")
             pdf_path = get_file_path(cov)
-            # TODO: write the rest
+            res = extract_annots(cov, pdf_path, db)
+            page_number = res[0]
+            hex_color = res[1]
+            page_annots = res[2]
+            text = res[3]
+            print(annots_output(page_number, hex_color, page_annots, text))
     elif cov != "":
         pdf_path = get_file_path(cov)
-
-        doc = fitz.open(pdf_path)
-
-        # TODO: make this work with all pages
-        page = doc[0]
-        annots = page.annots()
-        print(annots)
-        for annot in annots:
-            if annot.type[1] == "Highlight":
-                annotColor = annot.colors["stroke"]
-                hex_color = rgb_to_hex(annotColor)
-                # TODO: translate hex color to color name based on Themes/Topics from db,
-                # check if config file is sync first
-            print("------------------")
-            print(f"info: {annot}")
-            print(hex_color)
-            get_pdf_text(page, annot.rect)
+        res = extract_annots(cov, pdf_path, db)
+        page_number = res[0]
+        hex_color = res[1]
+        page_annots = res[2]
+        text = res[3]
+        print(annots_output(page_number, hex_color, page_annots, text))
     else:
         print(
-            "Please enter a covidence number using --cov [Covidence Number] or use --all"
+            """
+[bold red]Please enter a covidence number using --cov [Covidence Number] or use --all[/bold red]
+            """
         )
 
 
@@ -287,27 +287,33 @@ def dist(
         str,
         typer.Option(help="Output format, available options are Json, YAML and CSV"),
     ] = "",
-    db: Annotated[bool, typer.Option(help="Database")] = False,
+    db: Annotated[bool, typer.Option(help="Save to SQLite database file")] = False,
     all: Annotated[bool, typer.Option(help="All PDFs")] = False,
 ):
+    total_count = 0
+    pdf_path = None
+    found_in_page_numbers = []
+    msg = f"""
+Found {total_count} instances
+Term: {term}
+PDF path: {pdf_path}
+        """
+
     if all:
         pdf_dir = Path.cwd() / config_data["pdf_path"]
         for file_name in os.listdir(pdf_dir):
             cov = file_name.split("_")[0].remove("#")
             total_count, found_in_page_numbers = extract_dist(pdf_path, term, db)
+            print(msg)
+            print(dist_output(found_in_page_numbers, output))
     elif cov != "":
         pdf_path = get_file_path(cov)
         total_count, found_in_page_numbers = extract_dist(pdf_path, term, db)
+        print(msg)
+        print(dist_output(found_in_page_numbers, output))
     else:
         print(
-            "Please enter a covidence number using --cov [Covidence Number] or use --all"
+            """
+[bold red]Please enter a covidence number using --cov [Covidence Number] or use --all[/bold red]
+            """
         )
-
-    print(
-        f"""
-Found {total_count} instances
-Term: {term}
-PDF path: {pdf_path}
-        """
-    )
-    print(dist_output(found_in_page_numbers, output))
