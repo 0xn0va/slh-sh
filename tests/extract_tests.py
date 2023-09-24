@@ -1,6 +1,6 @@
 from typer.testing import CliRunner
 
-from ..slh.main import app
+from slh.main import app
 
 runner = CliRunner()
 
