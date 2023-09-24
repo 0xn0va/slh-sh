@@ -6,6 +6,8 @@ import pandas as pd
 import sqlite3 as sql
 
 from bs4 import BeautifulSoup
+from pdfminer.high_level import extract_text
+
 
 from slh.utils.config import load_config
 from slh.utils.file import fileNameGenerator
@@ -205,3 +207,121 @@ def extract_dl(html, pdf_dir, idelement, dllinkelement):
             print(f"PDF already exists: {pdf_path}")
 
     return study_headers
+
+
+##
+## Extract Filename
+##
+
+
+def extract_filename(csv, rename=False):
+    """Extracts the filename from the csv file and updates the filename column in the studies table
+
+    Args: TODO: add name convention options
+        csv (FILE): csv file
+        rename (BOOL): rename the pdf file
+
+    Returns:
+        LIST: List of file names
+    """
+    csvDF = pd.read_csv(csv)
+    # convert column 'Published Year' from int to string in csvDF
+    csvDF["Published Year"] = csvDF["Published Year"].astype(str)
+    # replace all NaN values with 'None" in csvDF
+    csvDF = csvDF.fillna("None")
+
+    conn: sql.connect = sql.connect(configData["sqlite_db"])
+    curr: sql.Cursor = conn.cursor()
+
+    # Check if Filename column exists in studies table if not Add Filename column to studies table
+    curr.execute("PRAGMA table_info(studies)")
+    rows = curr.fetchall()
+    if "Filename" not in [row[1] for row in rows]:
+        curr.execute("ALTER TABLE studies ADD COLUMN Filename TEXT")
+    conn.commit()
+
+    fileNames = []
+    for i in csvDF["Authors"]:
+        # select covidence # from csvDF where authors is i
+        covidenceNumber: str = csvDF.loc[csvDF["Authors"] == i]["Covidence #"].values[0]
+        # select publicaiton year from csvDF where authors is i
+        year: str = csvDF.loc[csvDF["Authors"] == i]["Published Year"].values[0]
+
+        fileName: str = fileNameGenerator(covidenceNumber, i, year)
+        curr.execute(
+            f"UPDATE studies SET Filename = '{fileName}' WHERE Covidence ='{covidenceNumber}'"
+        )
+        conn.commit()
+        if rename:
+            pdf_path = os.path.join(configData["pdf_path"], f"{covidenceNumber}.pdf")
+            if os.path.exists(pdf_path) and not pdf_path.endswith(f"{fileName}.pdf"):
+                os.rename(
+                    pdf_path, os.path.join(configData["pdf_path"], f"{fileName}.pdf")
+                )
+            else:
+                print("file exists")
+        fileNames.append(fileName)
+
+    conn.close()
+
+    return fileNames
+
+
+##
+## Extract Keywords
+##
+
+
+def extract_keywords(cov, pdf_path, db=False):
+    """Extracts the keywords from the pdf file and updates the keywords column in the studies table
+
+    Args:
+        cov (INT): Covidence number
+        pdf_path (PATH): Path to the pdf file
+        db (bool, optional): Save to database? Defaults to False.
+
+    Returns:
+        _type_: _description_
+    """
+    conn: sql.connect = sql.connect(configData["sqlite_db"])
+    curr: sql.Cursor = conn.cursor()
+    # Check if Bibliography column exists in studies table if not Add Bibliography column to studies table
+    curr.execute("PRAGMA table_info(studies)")
+
+    rows = curr.fetchall()
+    if "Keywords" not in [row[1] for row in rows]:
+        curr.execute("ALTER TABLE studies ADD COLUMN Keywords TEXT")
+    conn.commit()
+
+    print(f"Extracting keywords of: {pdf_path}...")
+
+    text = extract_text(pdf_path)
+    regex = r"(?is)(keyword.*?)(?:(?:\r*\n){2})"
+    matches = re.findall(regex, text)
+    length = len(matches)
+
+    all_keywords = []
+    if length == 0:
+        print(f"Keywords not found for {pdf_path}")
+        all_keywords.append(f"{cov} None")
+    elif length >= 1:
+        keywords = (
+            matches[0]
+            .replace("\n", " ")
+            .replace("Keywords:", "")
+            .replace("KEYWORDS:", "")
+            .replace("Keywords", "")
+            .replace("KEYWORDS", "")
+            .strip()
+        )
+        all_keywords.append(f"{cov} {keywords}")
+        print(cov, keywords)
+        if db:
+            curr.execute(
+                f"UPDATE studies SET Keywords = '{keywords}' WHERE Covidence = '{cov}'"
+            )
+            conn.commit()
+
+    conn.close()
+
+    return all_keywords

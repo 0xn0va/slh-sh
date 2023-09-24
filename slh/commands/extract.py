@@ -1,22 +1,21 @@
 import typer
 import os
-import re
-import time
 import fitz
-import requests
-import pandas as pd
-import sqlite3 as sql
 
 from rich import print
 from pathlib import Path
-from bs4 import BeautifulSoup
 from typing_extensions import Annotated
-from pdfminer.high_level import extract_text
 
 from slh.utils.config import load_config
 from slh.utils.pdf import get_pdf_text, rgb_to_hex
-from slh.utils.file import get_file_path, fileNameGenerator
-from slh.utils.extract import extract_cit, extract_bib, extract_dl
+from slh.utils.file import get_file_path
+from slh.utils.extract import (
+    extract_cit,
+    extract_bib,
+    extract_dl,
+    extract_filename,
+    extract_keywords,
+)
 
 
 app = typer.Typer()
@@ -168,47 +167,7 @@ def filename(
     """
     print(f"Extracting filenames from {csv}...")
 
-    csvDF = pd.read_csv(csv)
-    # convert column 'Published Year' from int to string in csvDF
-    csvDF["Published Year"] = csvDF["Published Year"].astype(str)
-    # replace all NaN values with 'None" in csvDF
-    csvDF = csvDF.fillna("None")
-
-    conn: sql.connect = sql.connect(configData["sqlite_db"])
-    curr: sql.Cursor = conn.cursor()
-
-    # Check if Filename column exists in studies table if not Add Filename column to studies table
-    curr.execute("PRAGMA table_info(studies)")
-    rows = curr.fetchall()
-    if "Filename" not in [row[1] for row in rows]:
-        curr.execute("ALTER TABLE studies ADD COLUMN Filename TEXT")
-    conn.commit()
-
-    # TODO: make the arguments accessible to get naming schema from the command line and config file and add help
-
-    fileNames = []
-    for i in csvDF["Authors"]:
-        # select covidence # from csvDF where authors is i
-        covidenceNumber: str = csvDF.loc[csvDF["Authors"] == i]["Covidence #"].values[0]
-        # select publicaiton year from csvDF where authors is i
-        year: str = csvDF.loc[csvDF["Authors"] == i]["Published Year"].values[0]
-
-        fileName: str = fileNameGenerator(covidenceNumber, i, year)
-        curr.execute(
-            f"UPDATE studies SET Filename = '{fileName}' WHERE Covidence ='{covidenceNumber}'"
-        )
-        conn.commit()
-        if rename:
-            pdf_path = os.path.join(configData["pdf_path"], f"{covidenceNumber}.pdf")
-            if os.path.exists(pdf_path) and not pdf_path.endswith(f"{fileName}.pdf"):
-                os.rename(
-                    pdf_path, os.path.join(configData["pdf_path"], f"{fileName}.pdf")
-                )
-            else:
-                print("file exists")
-        fileNames.append(fileName)
-
-    conn.close()
+    fileNames = extract_filename(csv, rename)
 
     print(fileNames)
     print(
@@ -238,92 +197,22 @@ def keywords(
 ):
     print(f"Keywords {cov}...")
 
-    if db:
-        conn: sql.connect = sql.connect(configData["sqlite_db"])
-        curr: sql.Cursor = conn.cursor()
-        # Check if Bibliography column exists in studies table if not Add Bibliography column to studies table
-        curr.execute("PRAGMA table_info(studies)")
-        rows = curr.fetchall()
-        if "Keywords" not in [row[1] for row in rows]:
-            curr.execute("ALTER TABLE studies ADD COLUMN Keywords TEXT")
-        conn.commit()
-
     pdf_dir = Path.cwd() / configData["pdf_path"]
     pdf_path = None
 
     if all:
-        all_keywords = []
         for file_name in os.listdir(pdf_dir):
             cov = file_name.split("_")[0].remove("#")
             pdf_path = get_file_path(cov)
-            # pdf_path = os.path.join(pdf_dir, file_name)
-            print(f"Extracting keywords of: {pdf_path}...")
-            text = extract_text(pdf_path)
-            regex = r"(?is)(keyword.*?)(?:(?:\r*\n){2})"
-            matches = re.findall(regex, text)
-            length = len(matches)
-            if length == 0:
-                print(f"Keywords not found for {pdf_path}")
-                all_keywords.append(f"{cov} None")
-            elif length >= 1:
-                keywords = (
-                    matches[0]
-                    .replace("\n", " ")
-                    .replace("Keywords:", "")
-                    .replace("KEYWORDS:", "")
-                    .replace("Keywords", "")
-                    .replace("KEYWORDS", "")
-                    .strip()
-                )
-                all_keywords.append(f"{cov} {keywords}")
-                print(cov, keywords)
-                if db:
-                    curr.execute(
-                        f"UPDATE studies SET Keywords = '{keywords}' WHERE Covidence = '{cov}'"
-                    )
-                    conn.commit()
-        conn.close()
+            all_keywords = extract_keywords(cov, pdf_path, db)
         print(all_keywords)
         print(
             f"Extracted keywords from {len(all_keywords)} PDFs and added them to the Database..."
         )
-
     elif cov != "":
-        # open a file if first element matches covidence number
-        # for file_name in os.listdir(pdf_dir):
-        #     if file_name.startswith(cov + "_"):
-        #         pdf_path = os.path.join(pdf_dir, file_name)
-        #         break
-
-        # if pdf_path is None:
-        #     print(f"PDF not found for {cov}")
-        #     return
         pdf_path = get_file_path(cov)
-
-        text = extract_text(pdf_path)
-
-        regex = r"(?is)(keyword.*?)(?:(?:\r*\n){2})"
-        matches = re.findall(regex, text)
-
-        if len(matches) == 0:
-            print(f"Keywords not found for {pdf_path}")
-        elif len(matches) >= 1:
-            keywords = (
-                matches[0]
-                .replace("Keywords:", "")
-                .replace("KEYWORDS:", "")
-                .replace("Keywords", "")
-                .replace("KEYWORDS", "")
-                .strip()
-            )
-            if db:
-                curr.execute(
-                    f"UPDATE studies SET Keywords = '{keywords}' WHERE Covidence = '{cov}'"
-                )
-                conn.commit()
-                conn.close()
-                print(f"Added keywords of {cov} to db")
-            print(f"Keywords for {cov} located at {pdf_path}:\n\n{keywords}")
+        keywords = extract_keywords(cov, pdf_path, db)
+        print(f"Extracted keywords from {pdf_path} and added them to the Database...")
     else:
         print(
             "Please enter a covidence number using --cov [Covidence Number] or use --all"
