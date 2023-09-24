@@ -14,7 +14,7 @@ from typing_extensions import Annotated
 from pdfminer.high_level import extract_text
 
 from slh.utils.config import load_config
-from slh.utils.pdf import print_pdf_text, rgb_to_hex
+from slh.utils.pdf import get_pdf_text, rgb_to_hex
 from slh.utils.file import get_file_path, fileNameGenerator
 
 
@@ -469,4 +469,4 @@ def annots(
         print("------------------")
         print(f"info: {annot}")
         print(hex_color)
-        print_pdf_text(page, annot.rect)
+        get_pdf_text(page, annot.rect)

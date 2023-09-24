@@ -1,6 +1,6 @@
 import typer
 import os
-import re
+import sys
 import fitz
 import json
 import yaml
@@ -14,6 +14,7 @@ from typing_extensions import Annotated
 
 from slh.utils.config import load_config
 from slh.utils.file import get_file_path
+from slh.utils.pdf import get_pdf_text
 
 app = typer.Typer()
 configData = load_config()
@@ -55,64 +56,88 @@ def dist(
         str,
         typer.Option(help="Output format, available options are Json, YAML and CSV"),
     ] = "",
-    all: Annotated[bool, typer.Option(help="All")] = False,
     db: Annotated[bool, typer.Option(help="Database")] = False,
 ):
     pdf_path = get_file_path(cov)
 
     # search the term in the pdf file text and print the distribution of the term
     doc = fitz.open(pdf_path)
-    pageNumbers = []
-    found = 0
+    totalCount = 0
+    foundInPageNumbers = {}
+    themeID = 0
     for page in doc:
+        # get the paragraph text of the page the term was found in
+        foundinPage = 0
         res = page.search_for(term)
-        for rect in res:
-            found += 1
-            pageNumbers.append(page.number)
+
+        if res != []:
+            for rect in res:
+                foundinPage += 1
+                totalCount += 1
+            foundInPageNumbers[page.number + 1] = foundinPage
+
+    for i, j in foundInPageNumbers.items():
+        print(f"Page: {i} Count: {j}")
+        blocks = doc.load_page(page_id=i - 1).get_textpage("blocks").extractBLOCKS()
+        # print(blocks)
+        paragraphText = blocks[4]
+        for block in blocks:
+            paragraphText = block[4]
+            # check if term is in paragraph text
+            if term in paragraphText:
+                print(paragraphText)
+
 
     if db:
         conn: sql.connect = sql.connect(configData["sqlite_db"])
         curr: sql.Cursor = conn.cursor()
-        rows = curr.fetchall()
-        if "Distribution" not in [row[1] for row in rows]:
+        curr.execute(
+            "SELECT name FROM sqlite_master WHERE type='table' AND name='distribution'"
+        )
+        dbRes = curr.fetchone()
+        if dbRes == None:
             print("Distribution Table not found in database")
             return
-        # insert each into Distribution table
-        # curr.execute()
-        # if term found in themes table, insert total number into themes table
-        # curr.execute(
-        #     "INSERT INTO themes (Covidence, Term, Count) VALUES (?, ?, ?)",
-        #     (cov, term, found),
-        # )
-
-    # count the number of instances of each number in pageNumber list
-    pageNumbers = {str(i): pageNumbers.count(i) for i in pageNumbers}
-
+        # select theme id from themes table where term = term
+        curr.execute(
+            f"SELECT id FROM themes WHERE term ='{term}'",
+        )
+        dbRes: str = curr.fetchone()
+        if dbRes == None:
+            print("Term not found in themes table")
+        else:
+            themeID = int(dbRes[0])
+            # if term found in themes table insert total number into themes table where studyID = cov
+            curr.execute(
+                "INSERT INTO themes (studiesID, color, hex, term, totalCount) VALUES (?, ?, ?, ?, ?)",
+                (cov, dbRes[2], dbRes[3], term, totalCount),
+            )
+        for i, j in foundInPageNumbers.items():
+            curr.execute(
+                "INSERT INTO distribution (studiesID, themeID, term, pageNum, count) VALUES (?, ?, ?, ?, ?)",
+                (cov, themeID, term, i, j),
+            )
+        conn.commit()
+        conn.close()
     print(
         f"""
-Found {found} instances
+Found {totalCount} instances
 Term: {term}
 PDF path: {pdf_path}
         """
     )
-    print(
-        f"""
-'Pagenumber': Count[int]
-        """
-    )
-    # convert pageNumber dict to json and print
     if output == "":
-        print(pageNumbers)
+        print(foundInPageNumbers)
     elif output == "json":
         # convert to json format
-        print(json.dumps(pageNumbers, indent=4))
+        print(json.dumps(foundInPageNumbers, indent=4))
     elif output == "yaml":
         # convert to yaml format
-        print(yaml.dump(pageNumbers, indent=4))
+        print(yaml.dump(foundInPageNumbers, indent=4))
     elif output == "csv":
         # convert to csv format
         print("Pagenumber,Count")
-        for key, value in pageNumbers.items():
+        for key, value in foundInPageNumbers.items():
             print(f"{key},{value}")
 
 
@@ -121,8 +146,10 @@ PDF path: {pdf_path}
 def annots(
     term: Annotated[str, typer.Argument(help="Search term")],
     cov: Annotated[str, typer.Option(help="Covidence number")],
-    output: Annotated[str, typer.Option(help="Output format")] = "standard",
-    all: Annotated[bool, typer.Option(help="All")] = False,
+    output: Annotated[
+        str,
+        typer.Option(help="Output format, available options are Json, YAML and CSV"),
+    ] = "standard",
     wide: Annotated[bool, typer.Option(help="Wide format")] = False,
 ):
     print(f"Annots {term}...")

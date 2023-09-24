@@ -3,7 +3,7 @@ import fitz
 from itertools import groupby
 
 
-def print_pdf_text(page, rect):
+def get_pdf_text(page, rect):
     """Return text containted in the given rectangular highlighted area.
 
     Args:

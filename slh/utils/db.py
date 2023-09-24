@@ -1,8 +1,8 @@
 import sqlite3 as sql
 
-import slh.utils.config as config
+from slh.utils.config import load_config
 
-configData = config.load_config()
+configData = load_config()
 
 conn: sql.connect = sql.connect(configData["sqlite_db"])
 curr: sql.Cursor = conn.cursor()
@@ -18,11 +18,12 @@ def create_db():
         curr.execute(
             """CREATE TABLE themes
             (id INTEGER PRIMARY KEY AUTOINCREMENT,
-            studiesID INTEGER NOT NULL,
+            studiesID INTEGER,
             color TEXT NOT NULL,
             hex TEXT NOT NULL,
-            term TEXT NOT NULL
-            FOREIGN KEY(studiesID) REFERENCES studies(id),);"""
+            term TEXT NOT NULL,
+            totalCount INTEGER,
+            FOREIGN KEY(studiesID) REFERENCES studies(id));"""
         )
         conn.commit()
         print(f"Themes table created in database!")
@@ -95,10 +96,12 @@ def create_db():
             """CREATE TABLE distribution
             (id INTEGER PRIMARY KEY AUTOINCREMENT,
             studiesID INTEGER NOT NULL,
+            themeID INTEGER,
             term TEXT NOT NULL,
-            pageNum TEXT NOT NULL,
+            pageNumber TEXT NOT NULL,
             count INTEGER NOT NULL,
-            description TEXT NOT NULL,
+            description TEXT,
+            FOREIGN KEY(themeID) REFERENCES themes(id),
             FOREIGN KEY(studiesID) REFERENCES studies(id));"""
         )
         conn.commit()
