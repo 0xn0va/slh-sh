@@ -6,6 +6,7 @@ from rich import print
 
 from slh.utils.config import load_config
 from slh.utils.config import saveConfigFile
+from slh.utils.db import create_db
 
 
 app = typer.Typer()
@@ -184,6 +185,10 @@ def init(config: bool = typer.Option(False, help="Only create config file")):
             if not project_dir.is_dir():
                 project_dir.mkdir()
 
+            # Create the sqlite database
+            sqlite_db_path = project_dir / sqlite_db
+            create_db(sqlite_db_path)
+
             if typer.confirm(
                 """
 
@@ -215,7 +220,7 @@ def init(config: bool = typer.Option(False, help="Only create config file")):
 
             :star: Project directory created at {project_dir}
             :star: Config file created at {project_dir}/config.yaml
-            :star: sqlite database location is {project_dir}/{sqlite_db}
+            :star: sqlite database created at {project_dir}/{sqlite_db}
 
             [bold]Hooray! :space_invader:[/bold]
 

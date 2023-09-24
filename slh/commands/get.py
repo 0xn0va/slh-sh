@@ -19,36 +19,6 @@ app = typer.Typer()
 configData = load_config()
 
 
-#
-# PorP output format
-# Cites	Authors	Title	Year	Source	Publisher	ArticleURL	CitesURL	GSRank	QueryDate	Type	DOI	ISSN	CitationURL	
-#
-# Chen, X (2023). Information moderation principle on the regulatory sandbox. Economic Change and Restructuring, Springer, <https://doi.org/10.1007/s10644-022-09415-2>
-# [
-# 	{
-# 		"title": "Information moderation principle on the regulatory sandbox",
-# 		"source": "Economic Change and Restructuring",
-# 		"publisher": "Springer",
-# 		"doi": "10.1007/s10644-022-09415-2",
-# 		"article_url": "https://link.springer.com/article/10.1007/s10644-022-09415-2",
-# 		"related_url": "https://scholar.google.com/scholar?q=related:ds6rWLL7zU4J:scholar.google.com/&scioq=intitle:regulatory+intitle:sandbox&hl=en&as_sdt=2007",
-# 		"abstract": "… the regulatory sandbox … regulatory sandbox (Arner et al. 2016; Allen 2017; Yang 2018; Zhang and Chen 2018), we examine the information moderation principle of a regulatory sandbox …",
-# 		"rank": 31,
-# 		"year": 2023,
-# 		"volume": 0,
-# 		"issue": 0,
-# 		"startpage": 0,
-# 		"endpage": 0,
-# 		"cites": 0,
-# 		"ecc": 0,
-# 		"use": 1,
-# 		"authors": [
-# 			"X Chen"
-# 		]
-# 	}
-# ]
-
-
 @app.command()
 def info(
     cov: Annotated[str, typer.Argument(help="Covidence number")] = "",
