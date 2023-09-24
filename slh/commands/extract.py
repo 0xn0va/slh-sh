@@ -16,6 +16,7 @@ from pdfminer.high_level import extract_text
 from slh.utils.config import load_config
 from slh.utils.pdf import get_pdf_text, rgb_to_hex
 from slh.utils.file import get_file_path, fileNameGenerator
+from slh.utils.extract import extract_cit, extract_bib, extract_dl
 
 
 app = typer.Typer()
@@ -23,13 +24,14 @@ config_path = Path.cwd() / "config.yaml"
 configData = load_config()
 
 
-# TODO: make arguments and configs both accesible e.g. --sqlite
+##
+## Citation
+##
 
 
 @app.command("cit")
-# TODO: make a func from name generator from filename command so
-# this can create cit from authors column not filename user can choose if from db or csv
 def cit(
+    # needs csv?
     csv: Annotated[str, typer.Argument(help="Covidence CSV Export")] = configData[
         "csv_export"
     ],
@@ -48,54 +50,16 @@ def cit(
 
     print(f"Extracting citations from db...")
 
-    # APA 7 Citation
-    conn: sql.connect = sql.connect(configData["sqlite_db"])
-    curr: sql.Cursor = conn.cursor()
-    # Check if Citation column exists in studies table if not Add Citation column to studies table
-    curr.execute("PRAGMA table_info(studies)")
-    rows = curr.fetchall()
-    if "Citation" not in [row[1] for row in rows]:
-        curr.execute("ALTER TABLE studies ADD COLUMN Citation TEXT")
-    conn.commit()
+    citations, authorNoneRemoved = extract_cit()
 
-    curr.execute("SELECT Covidence, Authors, Published_Year FROM studies")
-    rows = curr.fetchall()
-    # create apa 7 citation from rows
-    citations = []
-    authorNoneRemoved = []
-    for row in rows:
-        if None in row:
-            print(f"{row} is none")
-            authorNoneRemoved.append(row)
-        else:
-            fileName: str = fileNameGenerator(row[0], row[1], row[2])
-
-            fileName = fileName.split("_")
-
-            year = fileName[-1]
-            if len(fileName) == 3:  # 1 author
-                authorsName = fileName[1]
-                citation = f"({authorsName}, {year})"
-            elif len(fileName) == 4:  # 2 authors
-                authorsName = f"{fileName[1]} & {fileName[2]}"
-                citation = f"({authorsName}, {year})"
-            elif len(fileName) == 5:  # more than 2 authors using first author and et al
-                authorsName = f"{fileName[1]} et al."
-                citation = f"({authorsName}, {year})"
-
-            citation = f"({authorsName}, {row[2]})"
-
-            # update citation column in studies table with the citation
-            curr.execute(
-                f"UPDATE studies SET Citation = '{citation}' WHERE Covidence = '{fileName[0]}'"
-            )
-            conn.commit()
-            citations.append(citation)
-
-    conn.close()
     print(citations)
     print(f"{len(citations)} citations added to the database")
     print(authorNoneRemoved)
+
+
+##
+## Bibliography
+##
 
 
 @app.command()
@@ -116,50 +80,15 @@ def bib(
         """
     )
 
-    csvDF = pd.read_csv(csv)
-    # convert column 'Published Year' from int to string in csvDF
-    csvDF["Published Year"] = csvDF["Published Year"].astype(str)
-    # replace all NaN values with 'None" in csvDF
-    csvDF = csvDF.fillna("None")
+    bibs = extract_bib(csv)
 
-    conn: sql.connect = sql.connect(configData["sqlite_db"])
-    curr: sql.Cursor = conn.cursor()
-    # Check if Bibliography column exists in studies table if not Add Bibliography column to studies table
-    curr.execute("PRAGMA table_info(studies)")
-    rows = curr.fetchall()
-    if "Bibliography" not in [row[1] for row in rows]:
-        curr.execute("ALTER TABLE studies ADD COLUMN Bibliography TEXT")
-    conn.commit()
-
-    # APA 7 Bibliography
-    # create apa 7 bib from csv
-    bibs = []
-    for index, row in csvDF.iterrows():
-        bib = {
-            "covidenceNumber": row["Covidence #"],
-            "author": row["Authors"],
-            "year": row["Published Year"],
-            "title": row["Title"],
-            "journal": row["Journal"],
-            "volume": row["Volume"],
-            "issue": row["Issue"],
-            "pages": row["Pages"],
-        }
-        bibs.append(bib)
-
-    for bib in bibs:
-        bibliography: str = f"{bib['author']} ({bib['year']}). {bib['title']}. {bib['journal']} {bib['volume']}({bib['issue']}), {bib['pages']}."
-        cov: str = f"{bib['covidenceNumber']}"
-
-        # Update the studies table with the bibliography
-        curr.execute(
-            "UPDATE studies SET Bibliography = ? WHERE Covidence = ?",
-            (bibliography, cov),
-        )
-        conn.commit()
-
-    conn.close()
+    print("Bibliographies added to the database:")
     print(bibs)
+
+
+##
+## Download
+##
 
 
 @app.command()
@@ -178,13 +107,13 @@ def dl(
         typer.Argument(
             help="Class name of the 'div' element containing Covidence Number or ID in a div"
         ),
-    ] = "study-header",
+    ] = configData["html_id_element"],
     dllinkelement: Annotated[
         str,
         typer.Argument(
             help="Class name of the 'a' element containing the URL of the PDF"
         ),
-    ] = "action-link download",
+    ] = configData["html_dl_class"],
 ):
     input(
         f"""
@@ -210,53 +139,7 @@ def dl(
     if not pdf_dir.is_dir():
         pdf_dir.mkdir()
 
-    # Read the HTML file into a string.
-    with open(html, "r") as f:
-        html_string = f.read()
-
-    # Create a BeautifulSoup object from the HTML string.
-    soup = BeautifulSoup(html_string, "html.parser")
-
-    # Find all of the elements with the class `study-header`.
-    study_headers = soup.find_all("div", class_=idelement)
-
-    # Iterate over the study headers and download the corresponding files.
-    for study_header in study_headers:
-        # Extract the study header number.
-        study_header_number = re.findall("#(\d+)", study_header.text)[0]
-
-        # Find the download link element.
-        download_link_element = study_header.parent.find("a", class_=dllinkelement)
-
-        # Extract the download link.
-        download_link = download_link_element["href"]
-
-        print(
-            f"""
-            :runner: Downloading PDF with ID {study_header_number} and URL {download_link}..."""
-        )
-
-        pdf_path = os.path.join(pdf_dir, f"{study_header_number}.pdf")
-
-        if not os.path.exists(pdf_path):
-            response = requests.get(download_link)
-            if response.status_code == 200:
-                with open(pdf_path, "wb") as f:
-                    f.write(response.content)
-                print(f"PDF downloaded: {pdf_path}")
-                time.sleep(3)
-            else:
-                raise Exception(
-                    f"""
-
-                    [bold red]Error[/bold red]: {response.status_code}
-
-                    Failed to download PDF: {download_link}, remove the section of the HTML file containing this link and try again.
-
-                    """
-                )
-        else:
-            print(f"PDF already exists: {pdf_path}")
+    study_headers = extract_dl(html, pdf_dir, idelement, dllinkelement)
 
     print(
         f"""
@@ -264,6 +147,11 @@ def dl(
 
         """
     )
+
+
+##
+## Filename
+##
 
 
 @app.command()
@@ -330,6 +218,11 @@ def filename(
         print(
             f"Renamed {len(fileNames)} PDFs in {configData['pdf_path']} folder with the filenames..."
         )
+
+
+##
+## Keywords
+##
 
 
 @app.command()
@@ -437,11 +330,9 @@ def keywords(
         )
 
 
-# https://pymupdf.readthedocs.io/en/latest/page.html#page
-# https://pymupdf.readthedocs.io/en/latest/vars.html#annotationtypes
-# https://github.com/pymupdf/PyMuPDF/issues/318
-
-# https://rgbcolorpicker.com/0-1
+##
+## Annotations
+##
 
 
 @app.command()

@@ -14,7 +14,6 @@ from typing_extensions import Annotated
 
 from slh.utils.config import load_config
 from slh.utils.file import get_file_path
-from slh.utils.pdf import get_pdf_text
 
 app = typer.Typer()
 configData = load_config()
@@ -86,7 +85,6 @@ def dist(
             # check if term is in paragraph text
             if term in paragraphText:
                 print(paragraphText)
-
 
     if db:
         conn: sql.connect = sql.connect(configData["sqlite_db"])

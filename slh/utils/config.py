@@ -32,6 +32,10 @@ def saveConfigFile(
         "csv_export": csv_export,
         # Name of the default HTML file
         "html_export": html_export,
+        # Name of id of html element
+        "html_id_element": "study-header",
+        # Name of download class in html element
+        "html_dl_class": "action-link download",
         # Name of the default Google Credentials file
         "google_credentials": google_credentials,
         # Name of the default SQLite Database file
@@ -100,6 +104,8 @@ def saveConfigFile(
 # gd_url - URL to Google Drive
 # csv_export - Name of the default CSV file
 # html_export - Name of the default HTML file
+# html_id_element - Name of id of html element
+# html_dl_class - Name of download class in html element
 # google_credentials - Name of the default Google Credentials file
 # sqlite_db - Name of the default SQLite Database file
 # pdf_path - Full path of the PDF folder e.g /Users/Sara/Downloads/uni/Thesis/SLR_Thesis_Lib

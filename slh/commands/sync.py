@@ -294,7 +294,7 @@ def config():
             # insert theme into database
             hex = configData["themes"][theme]["hex"]
             term = configData["themes"][theme]["term"]
-            # TODO: add study (cov) and count columns
+            # TODO: add study (cov) and totalCount columns
             curr.execute(
                 f"INSERT INTO themes (color, hex, term) VALUES ('{theme}', '{hex}', '{term}');"
             )
