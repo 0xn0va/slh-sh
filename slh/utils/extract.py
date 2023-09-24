@@ -1,6 +1,7 @@
 import os
 import time
 import re
+import fitz
 import requests
 import pandas as pd
 import sqlite3 as sql
@@ -10,9 +11,9 @@ from pdfminer.high_level import extract_text
 
 
 from slh.utils.config import load_config
-from slh.utils.file import fileNameGenerator
+from slh.utils.file import file_name_generator
 
-configData = load_config()
+config_data = load_config()
 
 
 ##
@@ -28,7 +29,7 @@ def extract_cit():
     """
 
     # APA 7 Citation
-    conn: sql.connect = sql.connect(configData["sqlite_db"])
+    conn: sql.connect = sql.connect(config_data["sqlite_db"])
     curr: sql.Cursor = conn.cursor()
     # Check if Citation column exists in studies table if not Add Citation column to studies table
     curr.execute("PRAGMA table_info(studies)")
@@ -90,13 +91,13 @@ def extract_bib(csv):
     Returns:
         list: List of bibliographies
     """
-    csvDF = pd.read_csv(csv)
-    # convert column 'Published Year' from int to string in csvDF
-    csvDF["Published Year"] = csvDF["Published Year"].astype(str)
-    # replace all NaN values with 'None" in csvDF
-    csvDF = csvDF.fillna("None")
+    csv_df = pd.read_csv(csv)
+    # convert column 'Published Year' from int to string in csv_df
+    csv_df["Published Year"] = csv_df["Published Year"].astype(str)
+    # replace all NaN values with 'None" in csv_df
+    csv_df = csv_df.fillna("None")
 
-    conn: sql.connect = sql.connect(configData["sqlite_db"])
+    conn: sql.connect = sql.connect(config_data["sqlite_db"])
     curr: sql.Cursor = conn.cursor()
     # Check if Bibliography column exists in studies table if not Add Bibliography column to studies table
     curr.execute("PRAGMA table_info(studies)")
@@ -109,7 +110,7 @@ def extract_bib(csv):
     # create apa 7 bib from csv
     bibs = []
     # TODO: get them from db and remove the need to pass csv
-    for index, row in csvDF.iterrows():
+    for index, row in csv_df.iterrows():
         bib = {
             "covidenceNumber": row["Covidence #"],
             "author": row["Authors"],
@@ -126,7 +127,6 @@ def extract_bib(csv):
         bibliography: str = f"{bib['author']} ({bib['year']}). {bib['title']}. {bib['journal']} {bib['volume']}({bib['issue']}), {bib['pages']}."
         cov: str = f"{bib['covidenceNumber']}"
 
-        # Update the studies table with the bibliography
         curr.execute(
             "UPDATE studies SET Bibliography = ? WHERE Covidence = ?",
             (bibliography, cov),
@@ -158,25 +158,16 @@ def extract_dl(html, pdf_dir, idelement, dllinkelement):
     Returns:    TODO: return the pdf file name
         Soup result: result of the soup.find_all
     """
-    # Read the HTML file into a string.
     with open(html, "r") as f:
         html_string = f.read()
 
-    # Create a BeautifulSoup object from the HTML string.
     soup = BeautifulSoup(html_string, "html.parser")
 
-    # Find all of the elements with the class `study-header`.
     study_headers = soup.find_all("div", class_=idelement)
 
-    # Iterate over the study headers and download the corresponding files.
     for study_header in study_headers:
-        # Extract the study header number.
         study_header_number = re.findall("#(\d+)", study_header.text)[0]
-
-        # Find the download link element.
         download_link_element = study_header.parent.find("a", class_=dllinkelement)
-
-        # Extract the download link.
         download_link = download_link_element["href"]
 
         print(
@@ -224,13 +215,13 @@ def extract_filename(csv, rename=False):
     Returns:
         LIST: List of file names
     """
-    csvDF = pd.read_csv(csv)
-    # convert column 'Published Year' from int to string in csvDF
-    csvDF["Published Year"] = csvDF["Published Year"].astype(str)
-    # replace all NaN values with 'None" in csvDF
-    csvDF = csvDF.fillna("None")
+    csv_df = pd.read_csv(csv)
+    # convert column 'Published Year' from int to string in csv_df
+    csv_df["Published Year"] = csv_df["Published Year"].astype(str)
+    # replace all NaN values with 'None" in csv_df
+    csv_df = csv_df.fillna("None")
 
-    conn: sql.connect = sql.connect(configData["sqlite_db"])
+    conn: sql.connect = sql.connect(config_data["sqlite_db"])
     curr: sql.Cursor = conn.cursor()
 
     # Check if Filename column exists in studies table if not Add Filename column to studies table
@@ -240,31 +231,31 @@ def extract_filename(csv, rename=False):
         curr.execute("ALTER TABLE studies ADD COLUMN Filename TEXT")
     conn.commit()
 
-    fileNames = []
-    for i in csvDF["Authors"]:
-        # select covidence # from csvDF where authors is i
-        covidenceNumber: str = csvDF.loc[csvDF["Authors"] == i]["Covidence #"].values[0]
-        # select publicaiton year from csvDF where authors is i
-        year: str = csvDF.loc[csvDF["Authors"] == i]["Published Year"].values[0]
+    file_names = []
+    for i in csv_df["Authors"]:
+        # select covidence # from csv_df where authors is i
+        covidence_number: str = csv_df.loc[csv_df["Authors"] == i]["Covidence #"].values[0]
+        # select publicaiton year from csv_df where authors is i
+        year: str = csv_df.loc[csv_df["Authors"] == i]["Published Year"].values[0]
 
-        fileName: str = fileNameGenerator(covidenceNumber, i, year)
+        fileName: str = file_name_generator(covidence_number, i, year)
         curr.execute(
-            f"UPDATE studies SET Filename = '{fileName}' WHERE Covidence ='{covidenceNumber}'"
+            f"UPDATE studies SET Filename = '{fileName}' WHERE Covidence ='{covidence_number}'"
         )
         conn.commit()
         if rename:
-            pdf_path = os.path.join(configData["pdf_path"], f"{covidenceNumber}.pdf")
+            pdf_path = os.path.join(config_data["pdf_path"], f"{covidence_number}.pdf")
             if os.path.exists(pdf_path) and not pdf_path.endswith(f"{fileName}.pdf"):
                 os.rename(
-                    pdf_path, os.path.join(configData["pdf_path"], f"{fileName}.pdf")
+                    pdf_path, os.path.join(config_data["pdf_path"], f"{fileName}.pdf")
                 )
             else:
                 print("file exists")
-        fileNames.append(fileName)
+        file_names.append(fileName)
 
     conn.close()
 
-    return fileNames
+    return file_names
 
 
 ##
@@ -283,7 +274,7 @@ def extract_keywords(cov, pdf_path, db=False):
     Returns:
         _type_: _description_
     """
-    conn: sql.connect = sql.connect(configData["sqlite_db"])
+    conn: sql.connect = sql.connect(config_data["sqlite_db"])
     curr: sql.Cursor = conn.cursor()
     # Check if Bibliography column exists in studies table if not Add Bibliography column to studies table
     curr.execute("PRAGMA table_info(studies)")
@@ -325,3 +316,87 @@ def extract_keywords(cov, pdf_path, db=False):
     conn.close()
 
     return all_keywords
+
+
+##
+## Extract Annotations
+##
+
+
+def extract_annots():
+    pass
+
+
+##
+## Extract Distribution
+##
+
+
+def extract_dist(pdf_path, term, cov, db=False):
+    """Extracts the distribution of the term from the pdf file and updates the distribution table in the database
+
+    Args:
+        pdf_path (path): The full path to the pdf file
+        term (str): The term to search for in the pdf file
+        cov (sid): Internal Study ID from the database e.g. Covidence number
+        db (bool, optional): Save to the database? - Defaults to False.
+
+    Returns:
+        total_count, found_in_page_numbers: Total count of the term found in the pdf file, Dict of page numbers where the term was found
+    """
+    # search the term in the pdf file text and print the distribution of the term
+    doc = fitz.open(pdf_path)
+    total_count = 0
+    found_in_page_numbers = {}
+    theme_id = 0
+    for page in doc:
+        # get the paragraph text of the page the term was found in
+        found_in_page = 0
+        res = page.search_for(term)
+
+        if res != []:
+            for rect in res:
+                found_in_page += 1
+                total_count += 1
+            found_in_page_numbers[page.number + 1] = found_in_page
+
+    for i, j in found_in_page_numbers.items():
+        print(f"Page: {i} Count: {j}")
+        blocks = doc.load_page(page_id=i - 1).get_textpage("blocks").extractBLOCKS()
+        paragraph_text = blocks[4]
+        for block in blocks:
+            paragraph_text = block[4]
+            if term in paragraph_text:
+                print(paragraph_text)
+
+    if db:
+        conn: sql.connect = sql.connect(config_data["sqlite_db"])
+        curr: sql.Cursor = conn.cursor()
+        curr.execute(
+            "SELECT name FROM sqlite_master WHERE type='table' AND name='distribution'"
+        )
+        db_res = curr.fetchone()
+        if db_res == None:
+            print("Distribution Table not found in database")
+            return
+        curr.execute(
+            f"SELECT id FROM themes WHERE term ='{term}'",
+        )
+        db_res: str = curr.fetchone()
+        if db_res == None:
+            print("Term not found in themes table")
+        else:
+            theme_id = int(db_res[0])
+            curr.execute(
+                "INSERT INTO themes (studiesID, color, hex, term, totalCount) VALUES (?, ?, ?, ?, ?)",
+                (cov, db_res[2], db_res[3], term, total_count),
+            )
+        for i, j in found_in_page_numbers.items():
+            curr.execute(
+                "INSERT INTO distribution (studiesID, themeID, term, pageNum, count) VALUES (?, ?, ?, ?, ?)",
+                (cov, theme_id, term, i, j),
+            )
+        conn.commit()
+        conn.close()
+
+    return total_count, found_in_page_numbers

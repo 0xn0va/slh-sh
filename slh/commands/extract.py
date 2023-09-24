@@ -1,5 +1,7 @@
 import typer
 import os
+import json
+import yaml
 import fitz
 
 from rich import print
@@ -9,18 +11,21 @@ from typing_extensions import Annotated
 from slh.utils.config import load_config
 from slh.utils.pdf import get_pdf_text, rgb_to_hex
 from slh.utils.file import get_file_path
+from slh.utils.extract_output import dist_output
 from slh.utils.extract import (
     extract_cit,
     extract_bib,
     extract_dl,
     extract_filename,
     extract_keywords,
+    extract_annots,
+    extract_dist,
 )
 
 
 app = typer.Typer()
 config_path = Path.cwd() / "config.yaml"
-configData = load_config()
+config_data = load_config()
 
 
 ##
@@ -31,7 +36,7 @@ configData = load_config()
 @app.command("cit")
 def cit(
     # needs csv?
-    csv: Annotated[str, typer.Argument(help="Covidence CSV Export")] = configData[
+    csv: Annotated[str, typer.Argument(help="Covidence CSV Export")] = config_data[
         "csv_export"
     ],
 ):
@@ -41,7 +46,7 @@ def cit(
 
         CSV File: {csv}
         Format: APA 7
-        Google Sheet's URL: {configData["gs_url"]}
+        Google Sheet's URL: {config_data["gs_url"]}
 
         Press Ctrl+C to cancel.
         """
@@ -63,7 +68,7 @@ def cit(
 
 @app.command()
 def bib(
-    csv: Annotated[str, typer.Argument(help="Covidence CSV Export")] = configData[
+    csv: Annotated[str, typer.Argument(help="Covidence CSV Export")] = config_data[
         "csv_export"
     ],
 ):
@@ -73,7 +78,7 @@ def bib(
 
         CSV File: {csv}
         Format: APA 7
-        Google Sheet's URL: {configData["gs_url"]}
+        Google Sheet's URL: {config_data["gs_url"]}
 
         Press Ctrl+C to cancel.
         """
@@ -97,8 +102,8 @@ def dl(
         typer.Argument(
             help="HTML export containing Covidence Number and Download Links"
         ),
-    ] = configData["html_export"],
-    pdfdir: Annotated[str, typer.Argument(help="Directory to save PDFs")] = configData[
+    ] = config_data["html_export"],
+    pdfdir: Annotated[str, typer.Argument(help="Directory to save PDFs")] = config_data[
         "pdf_path"
     ],
     idelement: Annotated[
@@ -106,13 +111,13 @@ def dl(
         typer.Argument(
             help="Class name of the 'div' element containing Covidence Number or ID in a div"
         ),
-    ] = configData["html_id_element"],
+    ] = config_data["html_id_element"],
     dllinkelement: Annotated[
         str,
         typer.Argument(
             help="Class name of the 'a' element containing the URL of the PDF"
         ),
-    ] = configData["html_dl_class"],
+    ] = config_data["html_dl_class"],
 ):
     input(
         f"""
@@ -155,7 +160,7 @@ def dl(
 
 @app.command()
 def filename(
-    csv: Annotated[str, typer.Argument(help="Covidence CSV Export")] = configData[
+    csv: Annotated[str, typer.Argument(help="Covidence CSV Export")] = config_data[
         "csv_export"
     ],
     rename: Annotated[bool, typer.Option(help="Also Rename the PDFs")] = False,
@@ -175,7 +180,7 @@ def filename(
     )
     if rename:
         print(
-            f"Renamed {len(fileNames)} PDFs in {configData['pdf_path']} folder with the filenames..."
+            f"Renamed {len(fileNames)} PDFs in {config_data['pdf_path']} folder with the filenames..."
         )
 
 
@@ -190,14 +195,14 @@ def keywords(
     all: Annotated[
         bool,
         typer.Option(
-            help="Extract keywords from all PDFs in configData['pdf_path'] folder"
+            help="Extract keywords from all PDFs in config_data['pdf_path'] folder"
         ),
     ] = False,
     db: Annotated[bool, typer.Option(help="SQLite database file")] = False,
 ):
     print(f"Keywords {cov}...")
 
-    pdf_dir = Path.cwd() / configData["pdf_path"]
+    pdf_dir = Path.cwd() / config_data["pdf_path"]
     pdf_path = None
 
     if all:
@@ -212,7 +217,9 @@ def keywords(
     elif cov != "":
         pdf_path = get_file_path(cov)
         keywords = extract_keywords(cov, pdf_path, db)
-        print(f"Extracted keywords from {pdf_path} and added them to the Database...")
+        print(
+            f"Extracted keywords {keywords} from {pdf_path} and added them to the Database..."
+        )
     else:
         print(
             "Please enter a covidence number using --cov [Covidence Number] or use --all"
@@ -224,6 +231,9 @@ def keywords(
 ##
 
 
+## TODO: add --all option to search all PDFs in the pdf_path folder
+## TODO: add --color option to search all PDFs in the pdf_path folder
+## TODO: go through all pages
 @app.command()
 def annots(
     cov: Annotated[str, typer.Option(help="Covidence number to extract keywords")],
@@ -231,22 +241,73 @@ def annots(
 ):
     print(f"Fetching Annotations of {color} (themes,topic,colored texts) from {cov}...")
 
-    pdf_path = get_file_path(cov)
+    pdf_dir = Path.cwd() / config_data["pdf_path"]
+    pdf_path = None
 
-    # TODO: make this work with all pdfs
-    doc = fitz.open(pdf_path)
+    if all:
+        for file_name in os.listdir(pdf_dir):
+            cov = file_name.split("_")[0].remove("#")
+            pdf_path = get_file_path(cov)
+            # TODO: write the rest
+    elif cov != "":
+        pdf_path = get_file_path(cov)
 
-    # TODO: make this work with all pages
-    page = doc[0]
-    annots = page.annots()
-    print(annots)
-    for annot in annots:
-        if annot.type[1] == "Highlight":
-            annotColor = annot.colors["stroke"]
-            hex_color = rgb_to_hex(annotColor)
-            # TODO: translate hex color to color name based on Themes/Topics from db,
-            # check if config file is sync first
-        print("------------------")
-        print(f"info: {annot}")
-        print(hex_color)
-        get_pdf_text(page, annot.rect)
+        doc = fitz.open(pdf_path)
+
+        # TODO: make this work with all pages
+        page = doc[0]
+        annots = page.annots()
+        print(annots)
+        for annot in annots:
+            if annot.type[1] == "Highlight":
+                annotColor = annot.colors["stroke"]
+                hex_color = rgb_to_hex(annotColor)
+                # TODO: translate hex color to color name based on Themes/Topics from db,
+                # check if config file is sync first
+            print("------------------")
+            print(f"info: {annot}")
+            print(hex_color)
+            get_pdf_text(page, annot.rect)
+    else:
+        print(
+            "Please enter a covidence number using --cov [Covidence Number] or use --all"
+        )
+
+
+##
+## Distribution
+##
+
+
+@app.command()
+def dist(
+    term: Annotated[str, typer.Argument(help="Search term")],
+    cov: Annotated[str, typer.Option(help="Covidence number")] = "",
+    output: Annotated[
+        str,
+        typer.Option(help="Output format, available options are Json, YAML and CSV"),
+    ] = "",
+    db: Annotated[bool, typer.Option(help="Database")] = False,
+    all: Annotated[bool, typer.Option(help="All PDFs")] = False,
+):
+    if all:
+        pdf_dir = Path.cwd() / config_data["pdf_path"]
+        for file_name in os.listdir(pdf_dir):
+            cov = file_name.split("_")[0].remove("#")
+            total_count, found_in_page_numbers = extract_dist(pdf_path, term, db)
+    elif cov != "":
+        pdf_path = get_file_path(cov)
+        total_count, found_in_page_numbers = extract_dist(pdf_path, term, db)
+    else:
+        print(
+            "Please enter a covidence number using --cov [Covidence Number] or use --all"
+        )
+
+    print(
+        f"""
+Found {total_count} instances
+Term: {term}
+PDF path: {pdf_path}
+        """
+    )
+    print(dist_output(found_in_page_numbers, output))
