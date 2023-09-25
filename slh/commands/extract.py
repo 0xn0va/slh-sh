@@ -1,15 +1,11 @@
 import typer
 import os
-import json
-import yaml
-import fitz
 
 from rich import print
 from pathlib import Path
 from typing_extensions import Annotated
 
 from slh.utils.config import load_config
-from slh.utils.pdf import get_pdf_text, rgb_to_hex
 from slh.utils.file import get_file_path
 from slh.modules.extract.output import dist_output, annots_output
 from slh.modules.extract.function import (
@@ -129,26 +125,19 @@ def dl(
         Press Ctrl+C to cancel.
         """
     )
-
     print(
         f"""
-
             Downloading PDFs from {html}...
-
             """
     )
-
     # Create the PDF directory if it doesn't exist.
     pdf_dir = Path.cwd() / pdfdir
     if not pdf_dir.is_dir():
         pdf_dir.mkdir()
-
     study_headers = extract_dl(html, pdf_dir, html_id_element, html_dl_class)
-
     print(
         f"""
         :tada: {len(study_headers)} PDFs from {html} to {pdf_dir} downloaded.
-
         """
     )
 
@@ -166,14 +155,10 @@ def filename(
     rename: Annotated[bool, typer.Option(help="Also Rename the PDFs")] = False,
 ):
     """
-
     To link the Filenames on Google Sheet with the PDFs on Google Drive: https://github.com/0xnovasky/SLRsLittleHelper/tree/main/slh
-
     """
     print(f"Extracting filenames from {csv}...")
-
     fileNames = extract_filename(csv, rename)
-
     print(fileNames)
     print(
         f"Updated database with {len(fileNames)} filenames on studies Table, Filenames column..."
@@ -231,11 +216,12 @@ def keywords(
 ##
 
 
-## TODO: add --color option to search all PDFs in the pdf_path folder
 @app.command()
 def annots(
-    cov: Annotated[str, typer.Option(help="Covidence number to extract keywords")],
-    color: Annotated[str, typer.Option(help="Color of the annotations to extract")],
+    cov: Annotated[str, typer.Option(help="Covidence number to extract keywords")] = "",
+    color: Annotated[
+        str, typer.Option(help="Color of the annotations to extract")
+    ] = "",
     all: Annotated[
         bool, typer.Option(help="Extract annotations from all PDFs in pdf_path folder")
     ] = False,
@@ -252,20 +238,12 @@ def annots(
         for file_name in os.listdir(pdf_dir):
             cov = file_name.split("_")[0].remove("#")
             pdf_path = get_file_path(cov)
-            res = extract_annots(cov, pdf_path, db)
-            page_number = res[0]
-            hex_color = res[1]
-            page_annots = res[2]
-            text = res[3]
-            print(annots_output(page_number, hex_color, page_annots, text))
+            res = extract_annots(cov, color, pdf_path, db)
+            print(res)
     elif cov != "":
         pdf_path = get_file_path(cov)
-        res = extract_annots(cov, pdf_path, db)
-        page_number = res[0]
-        hex_color = res[1]
-        page_annots = res[2]
-        text = res[3]
-        print(annots_output(page_number, hex_color, page_annots, text))
+        res = extract_annots(cov, color, pdf_path, db)
+        print(res)
     else:
         print(
             """
@@ -292,25 +270,17 @@ def dist(
 ):
     total_count = 0
     pdf_path = None
-    found_in_page_numbers = []
-    msg = f"""
-Found {total_count} instances
-Term: {term}
-PDF path: {pdf_path}
-        """
 
     if all:
         pdf_dir = Path.cwd() / config_data["pdf_path"]
         for file_name in os.listdir(pdf_dir):
             cov = file_name.split("_")[0].remove("#")
-            total_count, found_in_page_numbers = extract_dist(pdf_path, term, db)
-            print(msg)
-            print(dist_output(found_in_page_numbers, output))
+            total_count, dist_list = extract_dist(pdf_path, term, db)
+            print(total_count, dist_list)
     elif cov != "":
         pdf_path = get_file_path(cov)
-        total_count, found_in_page_numbers = extract_dist(pdf_path, term, db)
-        print(msg)
-        print(dist_output(found_in_page_numbers, output))
+        total_count, dist_list = extract_dist(pdf_path, term, db)
+        print(total_count, dist_list)
     else:
         print(
             """

@@ -9,10 +9,13 @@ import sqlite3 as sql
 from bs4 import BeautifulSoup
 from pdfminer.high_level import extract_text
 
-
 from slh.utils.config import load_config
 from slh.utils.file import file_name_generator
-from slh.utils.pdf import rgb_to_hex, get_pdf_text
+from slh.utils.pdf import (
+    rgb_to_hex,
+    get_pdf_text,
+    is_color_close,
+)
 
 config_data = load_config()
 
@@ -326,51 +329,84 @@ def extract_keywords(cov, pdf_path, db=False):
 ##
 
 
-def extract_annots(cov: int, pdf_path: str, db: bool = False):
+def extract_annots(cov: int, color: str, pdf_path: str, db: bool = False):
     doc = fitz.open(pdf_path)
-
-    # all_page_annots = {}
+    total_count = 0
     page_annots = []
     page_number = 0
-    themeID = 0
-
     return_list = []
 
     for page in doc:
-        # get the paragraph text of the page the term was found in
+        found_in_page = 0
         page_number = page.number + 1
         page_annots = page.annots()
-        page_annots = [annot.type[1] for annot in page_annots]
-        # all_page_annots[page_number] = page_annots
 
         for annot in page_annots:
             if annot.type[1] == "Highlight":
                 annot_color = annot.colors["stroke"]
                 hex_color = rgb_to_hex(annot_color)
-            page = annot["page"]
-            page_annots = annot["annots"]
-            text = get_pdf_text(page, annot)
+                annot_rgb_fixed = tuple(int(color * 255) for color in annot_color)
+                if color != "":
+                    # TODO: get theme info from db
+                    theme_hex_color = "#a28ae5"
+                    theme_description = "Regulatory Sandbox"
+                    theme_color = "Magenta"
+                    color_matched = is_color_close(annot_color, theme_hex_color)
+                    if color_matched:
+                        text = get_pdf_text(page, annot.rect)
+                        if any(d["paragraph_text"] == text for d in return_list):
+                            continue
+                        else:
+                            total_count += 1
+                            found_in_page += 1
+                            item = {
+                                "covidence_number": cov,
+                                "found_in_page": found_in_page,
+                                "searched_color": color,
+                                "page_number": page_number,
+                                "annot_rgb_color": annot_rgb_fixed,
+                                "annot_hex_color": hex_color,
+                                "theme_hex_color": theme_hex_color,
+                                "theme_description": theme_description,
+                                "theme_color": theme_color,
+                                "paragraph_text": text,
+                            }
+                            return_list.append(item)
+                else:
+                    text = get_pdf_text(page, annot.rect)
+                    if any(d["paragraph_text"] == text for d in return_list):
+                        continue
+                    else:
+                        total_count += 1
+                        found_in_page += 1
+                        item = {
+                            "covidence_number": cov,
+                            "found_in_page": found_in_page,
+                            "page_number": page_number,
+                            "annot_rgb_color": annot_rgb_fixed,
+                            "annot_hex_color": hex_color,
+                            "paragraph_text": text,
+                        }
+                        return_list.append(item)
 
-        return_list.append(f"{page_number} {hex_color} {page_annots} {text}")
+        # if db:
+        #     conn: sql.connect = sql.connect(config_data["sqlite_db"])
+        #     curr: sql.Cursor = conn.cursor()
+        #     curr.execute(
+        #         "SELECT name FROM sqlite_master WHERE type='table' AND name='annotations'"
+        #     )
+        #     db_res = curr.fetchone()
+        #     if db_res == None:
+        #         print("Annotations Table not found in database")
+        #         return
+        #     curr.execute(
+        #         "INSERT INTO annotations (studiesID, themesID, annotation, pageNumber, text) VALUES (?, ?, ?, ?, ?)",
+        #         (cov, themeID, "", page_number, hex_color, annot_list),
+        #     )
+        #     conn.commit()
+        #     conn.close()
 
-        if db:
-            conn: sql.connect = sql.connect(config_data["sqlite_db"])
-            curr: sql.Cursor = conn.cursor()
-            curr.execute(
-                "SELECT name FROM sqlite_master WHERE type='table' AND name='annotations'"
-            )
-            db_res = curr.fetchone()
-            if db_res == None:
-                print("Annotations Table not found in database")
-                return
-            curr.execute(
-                "INSERT INTO annotations (studiesID, themesID, annotation, pageNumber, text) VALUES (?, ?, ?, ?, ?)",
-                (cov, themeID, "", page_number, hex_color, return_list),
-            )
-            conn.commit()
-            conn.close()
-
-    return return_list
+    return total_count, return_list
 
 
 ##
@@ -388,13 +424,12 @@ def extract_dist(pdf_path, term, cov, db=False):
         db (bool, optional): Save to the database? - Defaults to False.
 
     Returns:
-        total_count, found_in_page_numbers: Total count of the term found in the pdf file, Dict of page numbers where the term was found
+        total_count, return_list: Total count of the term found in the pdf file, and the list of the distribution of the term
     """
     # search the term in the pdf file text and print the distribution of the term
     doc = fitz.open(pdf_path)
     total_count = 0
-    found_in_page_numbers = {}
-    theme_id = 0
+    return_list = []
     for page in doc:
         # get the paragraph text of the page the term was found in
         found_in_page = 0
@@ -402,47 +437,48 @@ def extract_dist(pdf_path, term, cov, db=False):
 
         if res != []:
             for rect in res:
-                found_in_page += 1
-                total_count += 1
-            found_in_page_numbers[page.number + 1] = found_in_page
+                text = get_pdf_text(page, rect)
+                if any(d["paragraph_text"] == text for d in return_list):
+                    continue
+                else:
+                    total_count += 1
+                    found_in_page += 1
+                    item: dict = {
+                        "page_number": page.number + 1,
+                        "term": term,
+                        "found_in_page": found_in_page,
+                        "paragraph_text": text,
+                    }
+                    return_list.append(item)
 
-    for i, j in found_in_page_numbers.items():
-        print(f"Page: {i} Count: {j}")
-        blocks = doc.load_page(page_id=i - 1).get_textpage("blocks").extractBLOCKS()
-        paragraph_text = blocks[4]
-        for block in blocks:
-            paragraph_text = block[4]
-            if term in paragraph_text:
-                print(paragraph_text)
+    # if db:
+    #     conn: sql.connect = sql.connect(config_data["sqlite_db"])
+    #     curr: sql.Cursor = conn.cursor()
+    #     curr.execute(
+    #         "SELECT name FROM sqlite_master WHERE type='table' AND name='distribution'"
+    #     )
+    #     db_res = curr.fetchone()
+    #     if db_res == None:
+    #         print("Distribution Table not found in database")
+    #         return
+    #     curr.execute(
+    #         f"SELECT id FROM themes WHERE term ='{term}'",
+    #     )
+    #     db_res: str = curr.fetchone()
+    #     if db_res == None:
+    #         print("Term not found in themes table")
+    #     else:
+    #         theme_id = int(db_res[0])
+    #         curr.execute(
+    #             "INSERT INTO themes (studiesID, color, hex, term, totalCount) VALUES (?, ?, ?, ?, ?)",
+    #             (cov, db_res[2], db_res[3], term, total_count),
+    #         )
+    #     for i, j in found_in_page_numbers.items():
+    #         curr.execute(
+    #             "INSERT INTO distribution (studiesID, themeID, term, pageNum, count) VALUES (?, ?, ?, ?, ?)",
+    #             (cov, theme_id, term, i, j),
+    #         )
+    #     conn.commit()
+    #     conn.close()
 
-    if db:
-        conn: sql.connect = sql.connect(config_data["sqlite_db"])
-        curr: sql.Cursor = conn.cursor()
-        curr.execute(
-            "SELECT name FROM sqlite_master WHERE type='table' AND name='distribution'"
-        )
-        db_res = curr.fetchone()
-        if db_res == None:
-            print("Distribution Table not found in database")
-            return
-        curr.execute(
-            f"SELECT id FROM themes WHERE term ='{term}'",
-        )
-        db_res: str = curr.fetchone()
-        if db_res == None:
-            print("Term not found in themes table")
-        else:
-            theme_id = int(db_res[0])
-            curr.execute(
-                "INSERT INTO themes (studiesID, color, hex, term, totalCount) VALUES (?, ?, ?, ?, ?)",
-                (cov, db_res[2], db_res[3], term, total_count),
-            )
-        for i, j in found_in_page_numbers.items():
-            curr.execute(
-                "INSERT INTO distribution (studiesID, themeID, term, pageNum, count) VALUES (?, ?, ?, ?, ?)",
-                (cov, theme_id, term, i, j),
-            )
-        conn.commit()
-        conn.close()
-
-    return total_count, found_in_page_numbers
+    return total_count, return_list

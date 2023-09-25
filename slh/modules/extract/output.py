@@ -7,7 +7,6 @@ def annots_output(page_number, hex_color, page_annots, text):
     return_msg = f"""
 Page number: {page_number}
 Hex color: {hex_color}
-Page annotations: {page_annots}
 Text: {text}
 """
 
