@@ -1,15 +1,24 @@
 import sqlite3 as sql
+from sqlalchemy import create_engine
 
 from slh.utils.config import load_config
 
 config_data = load_config()
 
-##
-## TODO: Implement SQAlchemy
-##
+
+def get_db():
+    """Gets the database session
+
+    Returns:
+        session (any): the database session
+    """
+    # create sqlalchemy engine and session
+    engine = create_engine(f"sqlite:///{config_data['sqlite_db']}")
+    db = engine.connect()
+    return db
 
 
-def get_db_cursor():
+def get_db_cursor():  # DEPRECATED
     """Gets the database cursor and connection
 
     Returns:
@@ -20,7 +29,7 @@ def get_db_cursor():
     return conn, curr
 
 
-def table_exists(table_name: str) -> bool:
+def table_exists(table_name: str) -> bool:  # DEPRECATED
     curr = get_db_cursor()
     curr.execute(
         f"SELECT name FROM sqlite_master WHERE type='table' AND name='{table_name}'"
@@ -32,7 +41,7 @@ def table_exists(table_name: str) -> bool:
         return True
 
 
-def column_exists(table_name: str, column_name: str) -> bool:
+def column_exists(table_name: str, column_name: str) -> bool:  # DEPRECATED
     curr = get_db_cursor()
     curr.execute(
         f"SELECT name FROM sqlite_master WHERE type='table' AND name='{table_name}'"
@@ -49,7 +58,7 @@ def column_exists(table_name: str, column_name: str) -> bool:
         return False
 
 
-def create_db():
+def create_db():  # DEPRECATED
     """Creates the database and tables if they don't exist"""
     conn, curr = get_db_cursor()
     # check if Themes table exists
