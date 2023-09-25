@@ -11,8 +11,8 @@ from typing_extensions import Annotated
 from slh.utils.config import load_config
 from slh.utils.pdf import get_pdf_text, rgb_to_hex
 from slh.utils.file import get_file_path
-from slh.utils.extract_output import dist_output, annots_output
-from slh.utils.extract import (
+from slh.modules.extract.output import dist_output, annots_output
+from slh.modules.extract.function import (
     extract_cit,
     extract_bib,
     extract_dl,
