@@ -7,7 +7,6 @@ from typing_extensions import Annotated
 
 from slh.utils.config import load_config
 from slh.utils.file import get_file_path
-from slh.modules.extract.output import dist_output, annots_output
 from slh.modules.extract.function import (
     extract_cit,
     extract_bib,
@@ -155,7 +154,7 @@ def filename(
     rename: Annotated[bool, typer.Option(help="Also Rename the PDFs")] = False,
 ):
     """
-    To link the Filenames on Google Sheet with the PDFs on Google Drive: https://github.com/0xnovasky/SLRsLittleHelper/tree/main/slh
+    To link the Filenames on Google Sheet with the PDFs on Google Drive visit the project's page.
     """
     print(f"Extracting filenames from {csv}...")
     fileNames = extract_filename(csv, rename)

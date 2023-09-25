@@ -10,6 +10,7 @@ from bs4 import BeautifulSoup
 from pdfminer.high_level import extract_text
 
 from slh.utils.config import load_config
+from slh.utils.db import get_db_cursor, column_exists
 from slh.utils.file import file_name_generator
 from slh.utils.pdf import (
     rgb_to_hex,
@@ -32,13 +33,8 @@ def extract_cit():
         list, list: List of citations, List of rows with None values
     """
 
-    # APA 7 Citation
-    conn: sql.connect = sql.connect(config_data["sqlite_db"])
-    curr: sql.Cursor = conn.cursor()
-    # Check if Citation column exists in studies table if not Add Citation column to studies table
-    curr.execute("PRAGMA table_info(studies)")
-    rows = curr.fetchall()
-    if "Citation" not in [row[1] for row in rows]:
+    conn, curr = get_db_cursor()
+    if not column_exists("studies", "Citation"):
         curr.execute("ALTER TABLE studies ADD COLUMN Citation TEXT")
     conn.commit()
 
@@ -101,19 +97,16 @@ def extract_bib(csv):
     # replace all NaN values with 'None" in csv_df
     csv_df = csv_df.fillna("None")
 
-    conn: sql.connect = sql.connect(config_data["sqlite_db"])
-    curr: sql.Cursor = conn.cursor()
-    # Check if Bibliography column exists in studies table if not Add Bibliography column to studies table
-    curr.execute("PRAGMA table_info(studies)")
-    rows = curr.fetchall()
-    if "Bibliography" not in [row[1] for row in rows]:
+    conn, curr = get_db_cursor()
+    if not column_exists("studies", "Bibliography"):
         curr.execute("ALTER TABLE studies ADD COLUMN Bibliography TEXT")
     conn.commit()
 
     # APA 7 Bibliography
     # create apa 7 bib from csv
     bibs = []
-    # TODO: get them from db and remove the need to pass csv
+    # get them from db and remove the need to pass csv
+    curr.execute("SELECT Covidence, Authors, Published_Year FROM studies")
     for index, row in csv_df.iterrows():
         bib = {
             "covidenceNumber": row["Covidence #"],
@@ -348,7 +341,7 @@ def extract_annots(cov: int, color: str, pdf_path: str, db: bool = False):
     return_list = []
 
     for page in doc:
-        found_in_page = 0
+        count = 0
         page_number = page.number + 1
         page_annots = page.annots()
 
@@ -369,10 +362,10 @@ def extract_annots(cov: int, color: str, pdf_path: str, db: bool = False):
                             continue
                         else:
                             total_count += 1
-                            found_in_page += 1
+                            count += 1
                             item = {
                                 "covidence_number": cov,
-                                "found_in_page": found_in_page,
+                                "count": count,
                                 "searched_color": color,
                                 "page_number": page_number,
                                 "annot_rgb_color": annot_rgb_fixed,
@@ -389,10 +382,10 @@ def extract_annots(cov: int, color: str, pdf_path: str, db: bool = False):
                         continue
                     else:
                         total_count += 1
-                        found_in_page += 1
+                        count += 1
                         item = {
                             "covidence_number": cov,
-                            "found_in_page": found_in_page,
+                            "count": count,
                             "page_number": page_number,
                             "annot_rgb_color": annot_rgb_fixed,
                             "annot_hex_color": hex_color,
@@ -443,7 +436,7 @@ def extract_dist(pdf_path, term, cov, db=False):
     return_list = []
     for page in doc:
         # get the paragraph text of the page the term was found in
-        found_in_page = 0
+        count = 0
         res = page.search_for(term)
 
         if res != []:
@@ -453,11 +446,11 @@ def extract_dist(pdf_path, term, cov, db=False):
                     continue
                 else:
                     total_count += 1
-                    found_in_page += 1
+                    count += 1
                     item: dict = {
                         "page_number": page.number + 1,
                         "term": term,
-                        "found_in_page": found_in_page,
+                        "count": count,
                         "paragraph_text": text,
                     }
                     return_list.append(item)

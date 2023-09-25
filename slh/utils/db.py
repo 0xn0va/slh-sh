@@ -4,11 +4,54 @@ from slh.utils.config import load_config
 
 config_data = load_config()
 
-conn: sql.connect = sql.connect(config_data["sqlite_db"])
-curr: sql.Cursor = conn.cursor()
+##
+## TODO: Implement SQAlchemy
+##
+
+
+def get_db_cursor():
+    """Gets the database cursor and connection
+
+    Returns:
+        conn (any), curr (any): the database connection and cursor
+    """
+    conn: sql.connect = sql.connect(config_data["sqlite_db"])
+    curr: sql.Cursor = conn.cursor()
+    return conn, curr
+
+
+def table_exists(table_name: str) -> bool:
+    curr = get_db_cursor()
+    curr.execute(
+        f"SELECT name FROM sqlite_master WHERE type='table' AND name='{table_name}'"
+    )
+    db_res: str = curr.fetchone()
+    if db_res == None:
+        return False
+    else:
+        return True
+
+
+def column_exists(table_name: str, column_name: str) -> bool:
+    curr = get_db_cursor()
+    curr.execute(
+        f"SELECT name FROM sqlite_master WHERE type='table' AND name='{table_name}'"
+    )
+    db_res: str = curr.fetchone()
+    if db_res == None:
+        return False
+    else:
+        curr.execute(f"PRAGMA table_info({table_name})")
+        db_res: str = curr.fetchall()
+        for col in db_res:
+            if col[1] == column_name:
+                return True
+        return False
 
 
 def create_db():
+    """Creates the database and tables if they don't exist"""
+    conn, curr = get_db_cursor()
     # check if Themes table exists
     curr.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='themes'")
     db_res: str = curr.fetchone()

@@ -2,15 +2,13 @@ import json
 import yaml
 
 
-def annots_output(page_number, hex_color, page_annots, text):
-    # TODO: translate hex color to color name based on Themes/Topics from db,
-    return_msg = f"""
-Page number: {page_number}
-Hex color: {hex_color}
-Text: {text}
-"""
-
-    return return_msg
+# def annots_output(page_number, hex_color, page_annots, text):
+#     return_msg = f"""
+# Page number: {page_number}
+# Hex color: {hex_color}
+# Text: {text}
+# """
+#     return return_msg
 
 
 ##
