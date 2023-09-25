@@ -330,6 +330,17 @@ def extract_keywords(cov, pdf_path, db=False):
 
 
 def extract_annots(cov: int, color: str, pdf_path: str, db: bool = False):
+    """Extracts the annotations from the pdf file and updates the annotations table in the database
+
+    Args:
+        cov (int): Covidence number
+        color (str): Color of the annotations to extract
+        pdf_path (str): Path to the pdf file
+        db (bool, optional): Defaults to False
+
+    Returns:
+        total_count (int), return_list (list): Total count of the annotations found in the pdf file, and the list of the annotations
+    """
     doc = fitz.open(pdf_path)
     total_count = 0
     page_annots = []
@@ -424,7 +435,7 @@ def extract_dist(pdf_path, term, cov, db=False):
         db (bool, optional): Save to the database? - Defaults to False.
 
     Returns:
-        total_count, return_list: Total count of the term found in the pdf file, and the list of the distribution of the term
+        total_count (int), return_list (list): Total count of the term found in the pdf file, and the list of the distribution of the term
     """
     # search the term in the pdf file text and print the distribution of the term
     doc = fitz.open(pdf_path)

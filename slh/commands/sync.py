@@ -5,65 +5,19 @@ import string
 import sys
 import sqlite3 as sql
 
-from typing_extensions import Annotated
 from rich import print
-
-import gspread
+from typing_extensions import Annotated
 from oauth2client.service_account import ServiceAccountCredentials
 
 from slh.utils.config import load_config
-
-# import pandas as pd
-# import requests
-# from gspread_dataframe import get_as_dataframe, set_with_dataframe
+from slh.modules.sync.function import (
+    get_spreadsheet_by_url,
+    get_worksheet_by_name,
+    update_sheet_cell,
+)
 
 app = typer.Typer()
 config_data = load_config()
-
-
-def gs_auth():
-    try:
-        # Authorization
-        scope = [
-            "https://www.googleapis.com/auth/spreadsheets",
-            "https://www.googleapis.com/auth/drive",
-        ]
-        credentials = ServiceAccountCredentials.from_json_keyfile_name(
-            config_data["google_credentials"], scope
-        )
-        gc = gspread.authorize(credentials)
-        return gc
-    except gspread.SpreadsheetNotFound:
-        print(f"Spreadsheet authentication failed!")
-        sys.exit()
-
-
-def get_spreadsheet_by_url(gs):
-    try:
-        auth = gs_auth()
-        spreadSheet = auth.open_by_url(gs)
-        return spreadSheet
-    except gspread.SpreadsheetNotFound:
-        print(f"Spreadsheet {gs} not found!")
-        sys.exit()
-
-
-def get_worksheet_by_name(gs, sheet):
-    try:
-        spreadSheet = get_spreadsheet_by_url(gs)
-        return spreadSheet.worksheet(sheet)
-    except gspread.WorksheetNotFound:
-        print(f"Worksheet {sheet} not found in Google Sheet!")
-        sys.exit()
-
-
-def update_sheet_cell(
-    ws, id_col_values, id_col_value, updating_col_index_header, db_res
-):
-    ws.update_cell(
-        id_col_values.index(id_col_value) + 1, updating_col_index_header + 1, db_res
-    )
-    print(f"Updated {id_col_value} with '{db_res}'")
 
 
 @app.command()
