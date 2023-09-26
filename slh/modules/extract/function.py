@@ -421,7 +421,6 @@ def extract_dist(pdf_path: str, term: str, cov: str, db=False):
                         count += 1
                         item: dict = {
                             "studies_id": cov,
-                            # "pdf_path": pdf_path,
                             "count": count,
                             "page_number": page.number + 1,
                             "term": term,
@@ -432,21 +431,27 @@ def extract_dist(pdf_path: str, term: str, cov: str, db=False):
     if db:
         dbs = get_db()
         dbs.begin()
+        dbs.query(Study).filter(Study.covidence_id == cov).update(
+            {Study.total_distribution: total_count}
+        )
         study_id = dbs.query(Study).filter(Study.covidence_id == cov).first().id
         theme_id = dbs.query(Theme).filter(Theme.term == term).first().id
 
-        # print(theme_id)
         for i in return_list:
-            dbs.add(
-                Distribution(
-                    studies_id=study_id,
-                    theme_id=theme_id,
-                    count=i["count"],
-                    page_number=i["page_number"],
-                    term=i["term"],
-                    text=i["text"],
+            # check if the text already exists in the distribution table
+            if dbs.query(Distribution).filter(Distribution.text == i["text"]).first():
+                continue
+            else:
+                dbs.add(
+                    Distribution(
+                        studies_id=study_id,
+                        theme_id=theme_id,
+                        count=i["count"],
+                        page_number=i["page_number"],
+                        term=i["term"],
+                        text=i["text"],
+                    )
                 )
-            )
         dbs.commit()
         dbs.close()
 
