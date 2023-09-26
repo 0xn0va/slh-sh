@@ -5,10 +5,9 @@ import csv as csvimport
 from typing_extensions import Annotated
 from rich import print
 
-from slh.utils.config import load_config
+from utils.file import get_conf
 
 app = typer.Typer()
-config_data = load_config()
 
 
 @app.command("csv")  # TODO: REFACTOR
@@ -21,41 +20,41 @@ def csv(
         Imports a CSV file into a SQLite database.
 
         1. Export the CSV file  from Covidence via Export > REFERENCES > Options [Full text review] > Format [CSV]
-2. Rename to {config_data["csv_export"]}
+2. Rename to {get_conf("csv_export")}
 3. Place it in the project directory.
     """
         ),
-    ] = config_data["csv_export"],
+    ] = get_conf("csv_export"),
 ):
     input(
         f"""
         Press Enter to import:
 
         CSV File: {csv}
-        Sqlite Database Name: {config_data["sqlite_db"]}
+        Sqlite Database Name: {get_conf("sqlite_db")}
 
         Press Ctrl+C to cancel.
         """
     )
     print(
         f"""
-        Importing {csv} to {config_data['sqlite_db']}...
+        Importing {csv} to {get_conf('sqlite_db')}...
         """
     )
 
     # Open the CSV file
-    with open(config_data["csv_export"], "r") as f:
+    with open(get_conf("csv_export"), "r") as f:
         reader = csvimport.reader(f)
         # Read the first line of the file to get the CSV headers
         headers = next(reader)
 
         headers = [header.replace(" ", "_").replace("_#", "") for header in headers]
 
-        conn = sql.connect(config_data["sqlite_db"])
+        conn = sql.connect(get_conf("sqlite_db"))
         curr = conn.cursor()
 
         # check if gs_studies_id_column_name is not empty in config.yaml
-        if config_data["gs_studies_id_column_name"] == "":
+        if get_conf("gs_studies_id_column_name") == "":
             print(
                 "gs_studies_id_column_name is empty in config.yaml incremental number will be used as id."
             )

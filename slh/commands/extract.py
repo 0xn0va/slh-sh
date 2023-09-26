@@ -6,7 +6,7 @@ from pathlib import Path
 from typing_extensions import Annotated
 
 from slh.utils.file import get_pdf_dir, get_file_path, get_conf
-from slh.modules.extract.function import (
+from slh.modules.extract import (
     extract_cit,
     extract_bib,
     extract_dl,

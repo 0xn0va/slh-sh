@@ -12,11 +12,9 @@ from typing_extensions import Annotated
 
 # from scholarly import scholarly
 
-from slh.utils.config import load_config
-from slh.utils.file import get_file_path
+from slh.utils.file import get_file_path, get_conf
 
 app = typer.Typer()
-config_data = load_config()
 
 
 @app.command()
@@ -30,12 +28,12 @@ def info(
         print(
             f"""
 
-There are {len(os.listdir(config_data["pdf_path"]))} PDFs in {config_data["pdf_path"]}
+There are {len(os.listdir(get_conf("pdf_path")))} PDFs in {get_conf("pdf_path")}
 
 """
         )
         if not wide:
-            for file_name in os.listdir(config_data["pdf_path"]):
+            for file_name in os.listdir(get_conf("pdf_path")):
                 if not file_name.startswith("."):
                     print(file_name)
         else:

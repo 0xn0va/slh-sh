@@ -16,7 +16,7 @@ from slh.utils.pdf import (
     get_pdf_text,
     is_color_close,
 )
-from slh.db.extract.models import (
+from slh.data.models import (
     Study,
     Theme,
     Annotation,

@@ -7,17 +7,15 @@ import sqlite3 as sql
 
 from rich import print
 from typing_extensions import Annotated
-from oauth2client.service_account import ServiceAccountCredentials
 
-from slh.utils.config import load_config
-from slh.modules.sync.function import (
+from slh.utils.file import get_conf
+from slh.modules.sync import (
     get_spreadsheet_by_url,
     get_worksheet_by_name,
     update_sheet_cell,
 )
 
 app = typer.Typer()
-config_data = load_config()
 
 
 @app.command()
@@ -25,13 +23,14 @@ def update(
     col: Annotated[str, typer.Option(help="Column name in Google Sheet")] = "",
     # TODO: handle range when passed by user as cov, Use a number, a range e.g. 1-20 or multiple numbers e.g 1,30,2
     cov: Annotated[str, typer.Option(help="Covidence number as ID")] = "",
-    sheet: Annotated[str, typer.Option(help="Name of the Sheet")] = config_data[
+    sheet: Annotated[str, typer.Option(help="Name of the Sheet")] = get_conf(
         "gs_studies_sheet_name"
-    ],
-    gs: Annotated[str, typer.Option(help="Google Sheet URL")] = config_data["gs_url"],
+    ),
+    gs: Annotated[str, typer.Option(help="Google Sheet URL")] = get_conf("gs_url"),
     idcol: Annotated[
-        str, typer.Option(help="Column name that considered as ID e.g 'Covidence #'")
-    ] = config_data["gs_studies_id_column_name"],
+        str,
+        typer.Option(help="Column name that considered as ID e.g 'Covidence #'"),
+    ] = get_conf("gs_studies_id_column_name"),
     apply: Annotated[bool, typer.Option(help="Apply changes to Google Sheet")] = False,
     allcol: Annotated[bool, typer.Option(help="Update all data in column")] = False,
     alltable: Annotated[
@@ -46,7 +45,7 @@ def update(
     if alltable == "" and apply:
         ws = get_worksheet_by_name(gs, sheet)
 
-        header_row: int = int(config_data["gs_header_row_number"])
+        header_row: int = int(get_conf("gs_header_row_number"))
         header_row_values = ws.row_values(header_row)
         # get index number of provided Column e.g "Keywords" in header_values
         updating_col_index_header = header_row_values.index(col)
@@ -54,7 +53,7 @@ def update(
         # get all values of id_col_index from header_row to the last row
         id_col_values = ws.col_values(id_col_index + 1)
 
-    conn: sql.connect = sql.connect(config_data["sqlite_db"])
+    conn: sql.connect = sql.connect(get_conf("sqlite_db"))
     curr: sql.Cursor = conn.cursor()
 
     if cov != "" and col != "" and "," not in cov and "-" not in cov:
@@ -234,20 +233,20 @@ def config():
 
     Creates the needed tables if not exists.
     """
-    print(f"Syncing config.yaml to database: {config_data['sqlite_db']}...")
+    print(f"Syncing config.yaml to database: {get_conf('sqlite_db')}...")
 
-    conn: sql.connect = sql.connect(config_data["sqlite_db"])
+    conn: sql.connect = sql.connect(get_conf("sqlite_db"))
     curr: sql.Cursor = conn.cursor()
 
     # iterate over Themes in config_data and insert into database
-    for theme in config_data["themes"]:
+    for theme in get_conf("themes"):
         # check if theme exists in database
         curr.execute(f"SELECT id FROM themes WHERE color = '{theme}'")
         db_res: str = curr.fetchone()
         if db_res == None:
             # insert theme into database
-            hex = config_data["themes"][theme]["hex"]
-            term = config_data["themes"][theme]["term"]
+            hex = get_conf("themes")[theme]["hex"]
+            term = get_conf("themes")[theme]["term"]
             # TODO: add study (cov) and totalCount columns
             curr.execute(
                 f"INSERT INTO themes (color, hex, term) VALUES ('{theme}', '{hex}', '{term}');"
@@ -258,13 +257,13 @@ def config():
             print(f"Theme {theme} already exists in database!")
 
     # iterate over Searches in config_data and insert into database
-    for search in config_data["searches"]:
+    for search in get_conf("searches"):
         # check if search exists in database
         curr.execute(f"SELECT id FROM searches WHERE name = '{search}'")
         db_res: str = curr.fetchone()
         if db_res == None:
             # insert search into database
-            description = config_data["searches"][search]
+            description = get_conf("searches")[search]
             curr.execute(
                 f"INSERT INTO searches (name, description) VALUES ('{search}', '{description}');"
             )
@@ -274,13 +273,13 @@ def config():
             print(f"Search {search} already exists in database!")
 
     # iterate over Sources in config_data and insert into database
-    for source in config_data["sources"]:
+    for source in get_conf("sources"):
         # check if source exists in database
         curr.execute(f"SELECT id FROM sources WHERE name = '{source}'")
         db_res: str = curr.fetchone()
         if db_res == None:
             # insert source into database
-            description = config_data["sources"][source]
+            description = get_conf("sources")[source]
             curr.execute(
                 f"INSERT INTO sources (name, description) VALUES ('{source}', '{description}');"
             )
