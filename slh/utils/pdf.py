@@ -76,8 +76,8 @@ def is_color_close(rgb_color, hex_color, threshold=50):
     """
 
     rgb_of_config_hex = hex_to_rgb(hex_color)
-
     rgb_fixed = tuple(int(color * 255) for color in rgb_color)
+
     # Calculate the distance between the two colors.
     distance = math.sqrt(
         (rgb_fixed[0] - rgb_of_config_hex[0]) ** 2

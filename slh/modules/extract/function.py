@@ -8,10 +8,9 @@ import pandas as pd
 from bs4 import BeautifulSoup
 from pdfminer.high_level import extract_text
 
-from slh.utils.config import load_config
 from slh.utils.log import logger
 from slh.utils.db import get_db
-from slh.utils.file import file_name_generator
+from slh.utils.file import file_name_generator, get_conf
 from slh.utils.pdf import (
     rgb_to_hex,
     get_pdf_text,
@@ -23,8 +22,6 @@ from slh.db.extract.models import (
     Annotation,
     Distribution,
 )
-
-config_data = load_config()
 
 
 ##
@@ -228,10 +225,10 @@ def extract_filename(csv, rename=False, db=False):
             dbs.close()
 
         if rename:
-            pdf_path = os.path.join(config_data["pdf_path"], f"{covidence_number}.pdf")
+            pdf_path = os.path.join(get_conf("pdf_path"), f"{covidence_number}.pdf")
             if os.path.exists(pdf_path) and not pdf_path.endswith(f"{file_name}.pdf"):
                 os.rename(
-                    pdf_path, os.path.join(config_data["pdf_path"], f"{file_name}.pdf")
+                    pdf_path, os.path.join(get_conf("pdf_path"), f"{file_name}.pdf")
                 )
             else:
                 print("file exists")
@@ -324,14 +321,17 @@ def extract_annots(cov: int, color: str, pdf_path: str, db: bool = False):
                     hex_color = rgb_to_hex(annot_color)
                     annot_rgb_fixed = tuple(int(color * 255) for color in annot_color)
                     if color != "":
-                        # TODO: get theme info from db
-                        theme_hex_color = "#a28ae5"
-                        theme_description = "Regulatory Sandbox"
-                        theme_color = "Magenta"
+                        dbs = get_db()
+                        theme_data = (
+                            dbs.query(Theme).filter(Theme.color == hex_color).first()
+                        )
+                        theme_color = theme_data.color
+                        theme_term = theme_data.term
+                        theme_hex_color = theme_data.hex
                         color_matched = is_color_close(annot_color, theme_hex_color)
                         if color_matched:
                             text = get_pdf_text(page, annot.rect)
-                            if any(d["paragraph_text"] == text for d in return_list):
+                            if any(d["text"] == text for d in return_list):
                                 continue
                             else:
                                 total_count += 1
@@ -344,14 +344,14 @@ def extract_annots(cov: int, color: str, pdf_path: str, db: bool = False):
                                     "annot_rgb_color": annot_rgb_fixed,
                                     "annot_hex_color": hex_color,
                                     "theme_hex_color": theme_hex_color,
-                                    "theme_description": theme_description,
+                                    "theme_term": theme_term,
                                     "theme_color": theme_color,
-                                    "paragraph_text": text,
+                                    "text": text,
                                 }
                                 return_list.append(item)
                     else:
                         text = get_pdf_text(page, annot.rect)
-                        if any(d["paragraph_text"] == text for d in return_list):
+                        if any(d["text"] == text for d in return_list):
                             continue
                         else:
                             total_count += 1
@@ -362,7 +362,7 @@ def extract_annots(cov: int, color: str, pdf_path: str, db: bool = False):
                                 "page_number": page_number,
                                 "annot_rgb_color": annot_rgb_fixed,
                                 "annot_hex_color": hex_color,
-                                "paragraph_text": text,
+                                "text": text,
                             }
                             return_list.append(item)
 
@@ -378,7 +378,7 @@ def extract_annots(cov: int, color: str, pdf_path: str, db: bool = False):
                         page_number=i["page_number"],
                         annot_rgb_color=i["annot_rgb_color"],
                         annot_hex_color=i["annot_hex_color"],
-                        text=i["paragraph_text"],
+                        text=i["text"],
                     )
                 )
             dbs.commit()
