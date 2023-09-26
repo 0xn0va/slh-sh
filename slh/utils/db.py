@@ -3,11 +3,9 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm import Mapped, mapped_column, declared_attr
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.sql import func
 from datetime import datetime
 from sqlalchemy import DateTime
-from uuid import uuid4
 
 
 sqlite_db_url = "sqlite:///slh.db"
@@ -19,9 +17,12 @@ Base = declarative_base()
 class BaseModel(Base):
     __abstract__ = True
 
-    id: Mapped[UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, index=True, default=uuid4
-    )
+    # id: Mapped[UUID] = mapped_column(
+    #     UUID(as_uuid=True),
+    #     primary_key=True,
+    #     index=True,
+    #     default=lambda: str(uuid4()),
+    # )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=func.now(), nullable=False
     )

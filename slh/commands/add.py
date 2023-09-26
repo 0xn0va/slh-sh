@@ -11,7 +11,7 @@ app = typer.Typer()
 config_data = load_config()
 
 
-@app.command("csv")
+@app.command("csv")  # TODO: REFACTOR
 # TODO: Adding new CSV file creates new DB, asks for DB name, and adds them to Config.yaml
 def csv(
     csv: Annotated[
@@ -81,7 +81,9 @@ def csv(
 
             # check if the study is already in the database based on the covidence number as id if not insert it
             for row in rows:
-                curr.execute(f"SELECT * FROM studies WHERE Covidence = ?", (row[12],))
+                curr.execute(
+                    f"SELECT * FROM studies WHERE covidence_id = ?", (row[12],)
+                )
                 if len(curr.fetchall()) > 0:
                     print(
                         f":information_desk_person: {row[12]} is already in the database."
@@ -89,7 +91,7 @@ def csv(
                 else:
                     curr.execute(
                         # insert row into sqlite db
-                        f"INSERT INTO studies ({', '.join(headers)}) VALUES ({', '.join([f'?' for i in range(len(headers))])})",
+                        f"INSERT INTO studies ({', '.join(headers.lower())}) VALUES ({', '.join([f'?' for i in range(len(headers.lower()))])})",
                         row,
                     )
                     print(f":star: {row[12]} added to the database.")

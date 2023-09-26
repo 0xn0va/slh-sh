@@ -1,12 +1,8 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING, Optional
 from datetime import datetime
-from sqlalchemy.orm import Mapped, mapped_column, relationship, declared_attr
-from sqlalchemy import DateTime, ForeignKey
-from sqlalchemy.sql import func
-from sqlalchemy.dialects.postgresql import UUID
-from uuid import uuid4
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy import ForeignKey
+
 
 from slh.utils.db import BaseModel
 
@@ -14,7 +10,9 @@ from slh.utils.db import BaseModel
 class Study(BaseModel):
     __tablename__ = "studies"
 
-    id: BaseModel.id
+    id: Mapped[int] = mapped_column(
+        index=True, primary_key=True, autoincrement=True, nullable=False
+    )
     created_at: BaseModel.created_at
     updated_at: BaseModel.updated_at
     title: Mapped[str] = mapped_column(index=True, nullable=False)
@@ -40,18 +38,14 @@ class Study(BaseModel):
     full_text: Mapped[str] = mapped_column(index=True, nullable=True)
     total_annotations: Mapped[int] = mapped_column(index=True, nullable=True)
     total_distribution: Mapped[int] = mapped_column(index=True, nullable=True)
-    # annotations: Mapped[list[Annotation]] = relationship(
-    #     "Annotation", back_populates="studies_id"
-    # )
-    # distributions: Mapped[list[Distribution]] = relationship(
-    #     "Distribution", back_populates="studies_id"
-    # )
 
 
 class Theme(BaseModel):
     __tablename__ = "themes"
 
-    id: BaseModel.id
+    id: Mapped[int] = mapped_column(
+        index=True, primary_key=True, autoincrement=True, nullable=False
+    )
     created_at: BaseModel.created_at
     updated_at: BaseModel.updated_at
     color: Mapped[str] = mapped_column(index=True, nullable=False)
@@ -62,11 +56,13 @@ class Theme(BaseModel):
 class Annotation(BaseModel):
     __tablename__ = "annotations"
 
-    id: BaseModel.id
+    id: Mapped[int] = mapped_column(
+        index=True, primary_key=True, autoincrement=True, nullable=False
+    )
     created_at: BaseModel.created_at
     updated_at: BaseModel.updated_at
-    studies_id: Mapped[UUID] = mapped_column("Study", ForeignKey("studies.id"))
-    theme_id: Mapped[UUID] = mapped_column("Theme", ForeignKey("themes.id"))
+    studies_id: Mapped[int] = mapped_column("Study", ForeignKey("studies.id"))
+    theme_id: Mapped[int] = mapped_column("Theme", ForeignKey("themes.id"))
     count: Mapped[int] = mapped_column(index=True, nullable=False)
     page_number: Mapped[int] = mapped_column(index=True, nullable=False)
     annot_rgb_color: Mapped[str] = mapped_column(index=True, nullable=False)
@@ -77,11 +73,13 @@ class Annotation(BaseModel):
 class Distribution(BaseModel):
     __tablename__ = "distribution"
 
-    id: Mapped[UUID]
-    created_at: Mapped[datetime]
-    updated_at: Mapped[datetime]
-    studies_id: Mapped[UUID] = mapped_column("Study", ForeignKey("studies.id"))
-    theme_id: Mapped[UUID] = mapped_column("Theme", ForeignKey("themes.id"))
+    id: Mapped[int] = mapped_column(
+        index=True, primary_key=True, autoincrement=True, nullable=False
+    )
+    created_at: BaseModel.created_at
+    updated_at: BaseModel.updated_at
+    studies_id: Mapped[int] = mapped_column("studies_id", ForeignKey("studies.id"))
+    theme_id: Mapped[int] = mapped_column("theme_id", ForeignKey("themes.id"))
     count: Mapped[int] = mapped_column(index=True, nullable=False)
     page_number: Mapped[int] = mapped_column(index=True, nullable=False)
     term: Mapped[str] = mapped_column(index=True, nullable=False)
