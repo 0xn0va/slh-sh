@@ -1,10 +1,39 @@
 import sqlite3 as sql
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import Mapped, mapped_column, declared_attr
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.sql import func
+from datetime import datetime
+from sqlalchemy import DateTime
+from uuid import uuid4
 
-from slh.utils.config import load_config
 
-config_data = load_config()
+sqlite_db_url = "sqlite:///slh.db"
+
+# config_data = load_config()
+Base = declarative_base()
+
+
+class BaseModel(Base):
+    __abstract__ = True
+
+    id: Mapped[UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, index=True, default=uuid4
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=func.now(), nullable=False
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=func.now(), nullable=False
+    )
+    __name__: str
+
+    # Generate __tablename__ automatically
+    # @declared_attr
+    # def __tablename__(cls) -> str:
+    #     return cls.__name__.lower()
 
 
 def get_db():
@@ -14,7 +43,7 @@ def get_db():
         session (any): the database session
     """
     # create sqlalchemy engine and session
-    engine = create_engine(f"sqlite:///{config_data['sqlite_db']}")
+    engine = create_engine(sqlite_db_url)
     # db = engine.connect()
     Session = sessionmaker(bind=engine)
     session = Session()
@@ -28,7 +57,7 @@ def get_db_cursor():  # DEPRECATED
     Returns:
         conn (any), curr (any): the database connection and cursor
     """
-    conn: sql.connect = sql.connect(config_data["sqlite_db"])
+    conn: sql.connect = sql.connect(sqlite_db_url)
     curr: sql.Cursor = conn.cursor()
     return conn, curr
 

@@ -8,28 +8,7 @@ from sqlalchemy.dialects.postgresql import UUID
 from uuid import uuid4
 from sqlalchemy.ext.declarative import declarative_base
 
-
-Base = declarative_base()
-
-
-class BaseModel(Base):
-    __abstract__ = True
-
-    id: Mapped[UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, index=True, default=uuid4
-    )
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=func.now(), nullable=False
-    )
-    updated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=func.now(), nullable=False
-    )
-    __name__: str
-
-    # Generate __tablename__ automatically
-    # @declared_attr
-    # def __tablename__(cls) -> str:
-    #     return cls.__name__.lower()
+from slh.utils.db import BaseModel
 
 
 class Study(BaseModel):
