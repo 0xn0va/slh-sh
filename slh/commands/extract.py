@@ -5,8 +5,7 @@ from rich import print
 from pathlib import Path
 from typing_extensions import Annotated
 
-from slh.utils.config import load_config
-from slh.utils.file import get_file_path
+from slh.utils.file import get_pdf_dir, get_file_path, get_conf
 from slh.modules.extract.function import (
     extract_cit,
     extract_bib,
@@ -17,11 +16,7 @@ from slh.modules.extract.function import (
     extract_dist,
 )
 
-
 app = typer.Typer()
-config_path = Path.cwd() / "config.yaml"
-config_data = load_config()
-
 
 ##
 ## Citation
@@ -38,7 +33,7 @@ def cit(
         Press Enter to generate citations:
 
         Format: APA 7
-        Google Sheet's URL: {config_data["gs_url"]}
+        Google Sheet's URL: {get_conf("gs_url")}
 
         Press Ctrl+C to cancel.
         """
@@ -60,9 +55,9 @@ def cit(
 
 @app.command()
 def bib(
-    csv: Annotated[str, typer.Argument(help="Covidence CSV Export")] = config_data[
+    csv: Annotated[str, typer.Argument(help="Covidence CSV Export")] = get_conf(
         "csv_export"
-    ],
+    ),
     db: Annotated[bool, typer.Option(help="Save to SQLite database file")] = False,
 ):
     """Extracts the bibliographies from the CSV export"""
@@ -72,7 +67,7 @@ def bib(
 
         CSV File: {csv}
         Format: APA 7
-        Google Sheet's URL: {config_data["gs_url"]}
+        Google Sheet's URL: {get_conf("gs_url")}
 
         Press Ctrl+C to cancel.
         """
@@ -96,22 +91,22 @@ def dl(
         typer.Argument(
             help="HTML export containing Covidence Number and Download Links"
         ),
-    ] = config_data["html_export"],
-    pdfdir: Annotated[str, typer.Argument(help="Directory to save PDFs")] = config_data[
+    ] = get_conf("html_export"),
+    pdfdir: Annotated[str, typer.Argument(help="Directory to save PDFs")] = get_conf(
         "pdf_path"
-    ],
+    ),
     html_id_element: Annotated[
         str,
         typer.Argument(
             help="Class name of the 'div' element containing Covidence Number or ID in a div"
         ),
-    ] = config_data["html_id_element"],
+    ] = get_conf("html_id_element"),
     html_dl_class: Annotated[
         str,
         typer.Argument(
             help="Class name of the 'a' element containing the URL of the PDF"
         ),
-    ] = config_data["html_dl_class"],
+    ] = get_conf("html_dl_class"),
 ):
     """Downloads the PDFs from the HTML export"""
     input(
@@ -148,9 +143,9 @@ def dl(
 
 @app.command()
 def filename(
-    csv: Annotated[str, typer.Argument(help="Covidence CSV Export")] = config_data[
+    csv: Annotated[str, typer.Argument(help="Covidence CSV Export")] = get_conf(
         "csv_export"
-    ],
+    ),
     rename: Annotated[bool, typer.Option(help="Also Rename the PDFs")] = False,
     db: Annotated[bool, typer.Option(help="Save to SQLite database file")] = False,
 ):
@@ -164,7 +159,7 @@ def filename(
     )
     if rename:
         print(
-            f"Renamed {len(fileNames)} PDFs in {config_data['pdf_path']} folder with the filenames..."
+            f"Renamed {len(fileNames)} PDFs in {get_conf('pdf_path')} folder with the filenames..."
         )
 
 
@@ -178,16 +173,14 @@ def keywords(
     cov: Annotated[str, typer.Option(help="Covidence number to extract keywords")] = "",
     all: Annotated[
         bool,
-        typer.Option(
-            help="Extract keywords from all PDFs in config_data['pdf_path'] folder"
-        ),
+        typer.Option(help="Extract keywords from all PDFs in pdf_path folder"),
     ] = False,
     db: Annotated[bool, typer.Option(help="SQLite database file")] = False,
 ):
     """Extracts the keywords from the PDFs"""
     print(f"Keywords {cov}...")
 
-    pdf_dir = Path.cwd() / config_data["pdf_path"]
+    pdf_dir = get_pdf_dir()
     pdf_path = None
 
     if all:
@@ -230,7 +223,7 @@ def annots(
     """Extracts the annotations from the PDFs"""
     print(f"Fetching Annotations of {color} (themes,topic,colored texts) from {cov}...")
 
-    pdf_dir = Path.cwd() / config_data["pdf_path"]
+    pdf_dir = get_pdf_dir()
     pdf_path = None
 
     if all:
@@ -268,11 +261,9 @@ def dist(
     all: Annotated[bool, typer.Option(help="All PDFs")] = False,
 ):
     """Extracts the distribution of a search term in the PDFs"""
-    # total_count = 0
-    # pdf_path = None
 
     if all and cov == "":
-        pdf_dir: str = Path.cwd() / config_data["pdf_path"]
+        pdf_dir: str = get_pdf_dir()
         for file_name in os.listdir(pdf_dir):
             cov = file_name.split("_")[0].replace("#", "")
             pdf_path: str = get_file_path(cov)

@@ -4,13 +4,11 @@ import time
 from pathlib import Path
 from rich import print
 
-from slh.utils.config import load_config
 from slh.utils.config import saveConfigFile
 from slh.utils.db import create_db
 
 
 app = typer.Typer()
-config_data = load_config()
 
 default_project_name = (
     f"slr-ai-thesis-{time.strftime('%Y')}-{time.strftime('%m')}-{time.strftime('%d')}"

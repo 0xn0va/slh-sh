@@ -5,16 +5,14 @@ from pathlib import Path
 from rich import print
 from typing_extensions import Annotated
 
-from slh.utils.config import load_config
-from slh.utils.file import get_file_path
+from slh.utils.file import get_file_path, get_conf
 
 app = typer.Typer()
-config_data = load_config()
 
 
 @app.command()
 def gd(
-    url: Annotated[str, typer.Argument(help="Google Drive URL")] = config_data["gd_url"]
+    url: Annotated[str, typer.Argument(help="Google Drive URL")] = get_conf("gd_url")
 ):
     print(f"Opening Google Drive: {url}...")
     webbrowser.open(url)
@@ -22,7 +20,7 @@ def gd(
 
 @app.command()
 def gs(
-    url: Annotated[str, typer.Argument(help="Google Sheet URL")] = config_data["gs_url"]
+    url: Annotated[str, typer.Argument(help="Google Sheet URL")] = get_conf("gs_url")
 ):
     print(f"Opening Google Sheet: {url}...")
     webbrowser.open(url)
@@ -62,9 +60,9 @@ def pdf(
 
 @app.command()
 def db(
-    sql: Annotated[str, typer.Argument(help="Name of SQLite database")] = config_data[
+    sql: Annotated[str, typer.Argument(help="Name of SQLite database")] = get_conf(
         "sqlite_db"
-    ]
+    )
 ):
     print(f"Opening SQLite database: {sql}...")
 

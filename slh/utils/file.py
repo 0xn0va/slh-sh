@@ -1,10 +1,32 @@
 import os
+import yaml
 
 from pathlib import Path
 
-from slh.utils.config import load_config
 
-config_data = load_config()
+def get_conf(key: str) -> str:
+    """Returns the value of the given key in the config file.
+
+    Args:
+        key (str): Key in the config file.
+
+    Returns:
+        str: Value of the given key.
+    """
+    config_path = Path.cwd() / "config.yaml"
+    with open(config_path, "r") as f:
+        config = yaml.safe_load(f)
+
+    return config[key]
+
+
+def get_pdf_dir() -> str:
+    """Returns the path to the PDF directory.
+
+    Returns:
+        str: Path to the PDF directory.
+    """
+    return Path.cwd() / get_conf("pdf_path")
 
 
 def get_file_path(cov):
@@ -13,13 +35,12 @@ def get_file_path(cov):
     Args:
         cov: ID column of the study specified in the config file and exists in the file name.
     """
-    pdf_dir = Path.cwd() / config_data["pdf_path"]
+    pdf_dir = get_pdf_dir()
     pdf_path = None
     pdf_cov = None
 
     for file_name in os.listdir(pdf_dir):
-        pdf_cov: str = file_name.split("_")[0]
-        pdf_cov = pdf_cov.replace("#", "")
+        pdf_cov: str = file_name.split("_")[0].replace("#", "")
         if pdf_cov == str(cov):
             pdf_path = os.path.join(pdf_dir, file_name)
 
