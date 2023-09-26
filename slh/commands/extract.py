@@ -6,6 +6,7 @@ from pathlib import Path
 from typing_extensions import Annotated
 
 from slh.utils.file import get_pdf_dir, get_file_path, get_conf
+from slh.utils.log import logger
 from slh.modules.extract import (
     extract_cit,
     extract_bib,
@@ -267,12 +268,15 @@ def dist(
         for file_name in os.listdir(pdf_dir):
             cov = file_name.split("_")[0].replace("#", "")
             pdf_path: str = get_file_path(cov)
-            total_count, dist_list = extract_dist(pdf_path, term, cov, db)
-            msg = {
-                "total_count": total_count,
-                "dist_list": dist_list,
-            }
-            print(msg)
+            if pdf_path.endswith(".pdf"):
+                total_count, dist_list = extract_dist(pdf_path, term, cov, db)
+                msg = {
+                    "total_count": total_count,
+                    "dist_list": dist_list,
+                }
+                print(msg)
+            else:
+                logger().info(f"{pdf_path} is not a PDF file.")
     elif cov != "" and all == False:
         pdf_path = get_file_path(cov)
         total_count, dist_list = extract_dist(pdf_path, term, cov, db)
