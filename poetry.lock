@@ -12,6 +12,25 @@ files = [
 ]
 
 [[package]]
+name = "alembic"
+version = "1.12.0"
+description = "A database migration tool for SQLAlchemy."
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "alembic-1.12.0-py3-none-any.whl", hash = "sha256:03226222f1cf943deee6c85d9464261a6c710cd19b4fe867a3ad1f25afda610f"},
+    {file = "alembic-1.12.0.tar.gz", hash = "sha256:8e7645c32e4f200675e69f0745415335eb59a3663f5feb487abfa0b30c45888b"},
+]
+
+[package.dependencies]
+Mako = "*"
+SQLAlchemy = ">=1.3.0"
+typing-extensions = ">=4"
+
+[package.extras]
+tz = ["python-dateutil"]
+
+[[package]]
 name = "annotated-types"
 version = "0.5.0"
 description = "Reusable constraint types to use with typing.Annotated"
@@ -804,6 +823,25 @@ cssselect = ["cssselect (>=0.7)"]
 html5 = ["html5lib"]
 htmlsoup = ["BeautifulSoup4"]
 source = ["Cython (>=0.29.35)"]
+
+[[package]]
+name = "mako"
+version = "1.2.4"
+description = "A super-fast templating language that borrows the best ideas from the existing templating languages."
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "Mako-1.2.4-py3-none-any.whl", hash = "sha256:c97c79c018b9165ac9922ae4f32da095ffd3c4e6872b45eded42926deea46818"},
+    {file = "Mako-1.2.4.tar.gz", hash = "sha256:d60a3903dc3bb01a18ad6a89cdbe2e4eadc69c0bc8ef1e3773ba53d44c3f7a34"},
+]
+
+[package.dependencies]
+MarkupSafe = ">=0.9.2"
+
+[package.extras]
+babel = ["Babel"]
+lingua = ["lingua"]
+testing = ["pytest"]
 
 [[package]]
 name = "markdown-it-py"
@@ -2143,4 +2181,4 @@ h11 = ">=0.9.0,<1"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<3.13"
-content-hash = "8d8784b088d4402ca6005d15527bc7d45094936f2df22b513d779ee67c1ba35e"
+content-hash = "3077cea5a5131cc22f8c6f1abd1a18787a19faa5ebaef40ac18f3e1ba9928ea7"

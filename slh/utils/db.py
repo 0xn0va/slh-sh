@@ -1,5 +1,6 @@
 import sqlite3 as sql
 from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
 
 from slh.utils.config import load_config
 
@@ -14,8 +15,11 @@ def get_db():
     """
     # create sqlalchemy engine and session
     engine = create_engine(f"sqlite:///{config_data['sqlite_db']}")
-    db = engine.connect()
-    return db
+    # db = engine.connect()
+    Session = sessionmaker(bind=engine)
+    session = Session()
+
+    return session
 
 
 def get_db_cursor():  # DEPRECATED

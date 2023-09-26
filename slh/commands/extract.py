@@ -32,11 +32,7 @@ config_data = load_config()
 def cit(
     db: Annotated[bool, typer.Option(help="Save to SQLite database file")] = False,
 ):
-    """Extracts the citations from the database
-
-    Args:
-        db (Annotated[bool, typer.Option, optional): Defaults to "Save to SQLite database file")]=False.
-    """
+    """Extracts the citations from the database"""
     input(
         f"""
         Press Enter to generate citations:
@@ -69,12 +65,7 @@ def bib(
     ],
     db: Annotated[bool, typer.Option(help="Save to SQLite database file")] = False,
 ):
-    """Extracts the bibliographies from the CSV export
-
-    Args:
-        csv (Annotated[str, typer.Argument, optional): Defaults to "Covidence CSV Export")]="",
-        db (Annotated[bool, typer.Option, optional): Defaults to "Save to SQLite database file")]=False,
-    """
+    """Extracts the bibliographies from the CSV export"""
     input(
         f"""
         Press Enter to generate bibliographies:
@@ -122,14 +113,7 @@ def dl(
         ),
     ] = config_data["html_dl_class"],
 ):
-    """Downloads the PDFs from the HTML export
-
-    Args:
-        html (Annotated[ str, typer.Argument, optional): Defaults to "HTML export containing Covidence Number and Download Links" ), ]=config_data["html_export"],
-        pdfdir (Annotated[str, typer.Argument, optional): Defaults to "Directory to save PDFs" ), ]=config_data["pdf_path"],
-        html_id_element (Annotated[ str, typer.Argument, optional): Defaults to "Class name of the 'div' element containing Covidence Number or ID in a div" ), ]=config_data["html_id_element"],
-        html_dl_class (Annotated[ str, typer.Argument, optional): Defaults to "Class name of the 'a' element containing the URL of the PDF" ), ]=config_data["html_dl_class"],
-    """
+    """Downloads the PDFs from the HTML export"""
     input(
         f"""
         Press Enter to download PDFs:
@@ -170,15 +154,7 @@ def filename(
     rename: Annotated[bool, typer.Option(help="Also Rename the PDFs")] = False,
     db: Annotated[bool, typer.Option(help="Save to SQLite database file")] = False,
 ):
-    """Extracts the filenames from the PDFs
-
-    To link the Filenames on Google Sheet with the PDFs on Google Drive visit the project's page.
-
-    Args:
-        csv (Annotated[str, typer.Argument, optional): Defaults to "Covidence CSV Export")]="",
-        rename (Annotated[bool, typer.Option, optional): Defaults to "Also Rename the PDFs")]=False,
-        db (Annotated[bool, typer.Option, optional): Defaults to "Save to SQLite database file")]=False,
-    """
+    """Extracts the filenames from the PDFs"""
 
     print(f"Extracting filenames from {csv}...")
     fileNames = extract_filename(csv, rename, db)
@@ -208,13 +184,7 @@ def keywords(
     ] = False,
     db: Annotated[bool, typer.Option(help="SQLite database file")] = False,
 ):
-    """Extracts the keywords from the PDFs
-
-    Args:
-        cov (Annotated[str, typer.Option, optional): Defaults to "Covidence number to extract keywords")]="".
-        all (Annotated[ bool, typer.Option, optional): Defaults to "Extract keywords from all PDFs in config_data['pdf_path'] folder" ), ]=False.
-        db (Annotated[bool, typer.Option, optional): Defaults to "SQLite database file")]=False.
-    """
+    """Extracts the keywords from the PDFs"""
     print(f"Keywords {cov}...")
 
     pdf_dir = Path.cwd() / config_data["pdf_path"]
@@ -257,14 +227,7 @@ def annots(
     ] = False,
     db: Annotated[bool, typer.Option(help="Save to SQLite database file")] = False,
 ):
-    """Extracts the annotations from the PDFs
-
-    Args:
-        cov (Annotated[str, typer.Option, optional): Defaults to "Covidence number to extract keywords")]="".
-        color (Annotated[ str, typer.Option, optional): Defaults to "Color of the annotations to extract" ), ]="".
-        all (Annotated[ bool, typer.Option, optional): Defaults to "Extract annotations from all PDFs in pdf_path folder" ), ]=False.
-        db (Annotated[bool, typer.Option, optional): Defaults to "Save to SQLite database file")]=False.
-    """
+    """Extracts the annotations from the PDFs"""
     print(f"Fetching Annotations of {color} (themes,topic,colored texts) from {cov}...")
 
     pdf_dir = Path.cwd() / config_data["pdf_path"]
@@ -304,28 +267,29 @@ def dist(
     db: Annotated[bool, typer.Option(help="Save to SQLite database file")] = False,
     all: Annotated[bool, typer.Option(help="All PDFs")] = False,
 ):
-    """Extracts the distribution of a search term in the PDFs
+    """Extracts the distribution of a search term in the PDFs"""
+    # total_count = 0
+    # pdf_path = None
 
-    Args:
-        term (Annotated[str, typer.Argument, optional): Defaults to "Search term")].
-        cov (Annotated[str, typer.Option, optional): Defaults to "Covidence number")]="",
-        output (Annotated[ str, typer.Option, optional): Defaults to "Output format, available options are Json, YAML and CSV" ), ]="",
-        db (Annotated[bool, typer.Option, optional): Defaults to "Save to SQLite database file")]=False,
-        all (Annotated[bool, typer.Option, optional): Defaults to "All PDFs")]=False,
-    """
-    total_count = 0
-    pdf_path = None
-
-    if all:
-        pdf_dir = Path.cwd() / config_data["pdf_path"]
+    if all and cov == "":
+        pdf_dir: str = Path.cwd() / config_data["pdf_path"]
         for file_name in os.listdir(pdf_dir):
-            cov = file_name.split("_")[0].remove("#")
-            total_count, dist_list = extract_dist(pdf_path, term, db)
-            print(total_count, dist_list)
-    elif cov != "":
+            cov = file_name.split("_")[0].replace("#", "")
+            pdf_path: str = get_file_path(cov)
+            total_count, dist_list = extract_dist(pdf_path, term, cov, db)
+            msg = {
+                "total_count": total_count,
+                "dist_list": dist_list,
+            }
+            print(msg)
+    elif cov != "" and all == False:
         pdf_path = get_file_path(cov)
-        total_count, dist_list = extract_dist(pdf_path, term, db)
-        print(total_count, dist_list)
+        total_count, dist_list = extract_dist(pdf_path, term, cov, db)
+        msg = {
+            "total_count": total_count,
+            "dist_list": dist_list,
+        }
+        print(msg)
     else:
         print(
             """

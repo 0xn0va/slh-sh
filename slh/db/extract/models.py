@@ -1,5 +1,13 @@
-from sqlalchemy import Column, Integer, String
+from __future__ import annotations
+from typing import TYPE_CHECKING, Optional
+from datetime import datetime
+from sqlalchemy.orm import Mapped, mapped_column, relationship, declared_attr
+from sqlalchemy import DateTime, ForeignKey
+from sqlalchemy.sql import func
+from sqlalchemy.dialects.postgresql import UUID
+from uuid import uuid4
 from sqlalchemy.ext.declarative import declarative_base
+
 
 Base = declarative_base()
 
@@ -7,71 +15,95 @@ Base = declarative_base()
 class BaseModel(Base):
     __abstract__ = True
 
-    id = Column(Integer, primary_key=True)
+    id: Mapped[UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, index=True, default=uuid4
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=func.now(), nullable=False
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=func.now(), nullable=False
+    )
+    __name__: str
+
+    # Generate __tablename__ automatically
+    # @declared_attr
+    # def __tablename__(cls) -> str:
+    #     return cls.__name__.lower()
 
 
-class Study(Base):
+class Study(BaseModel):
     __tablename__ = "studies"
 
-    id = Column(Integer, primary_key=True)
-    title = Column(String)
-    authors = Column(String)
-    abstract = Column(String)
-    published_year = Column(Integer)
-    published_month = Column(Integer)
-    journal = Column(String)
-    volume = Column(String)
-    issue = Column(String)
-    pages = Column(String)
-    accession_number = Column(String)
-    doi = Column(String)
-    ref = Column(String)
-    covidence_id = Column(Integer)
-    study = Column(String)
-    notes = Column(String)
-    tags = Column(String)
-    filename = Column(String)
-    keywords = Column(String)
-    citation = Column(String)
-    bibliography = Column(String)
-    full_text = Column(String)
-    total_annotations = Column(Integer)
-    total_distribution = Column(Integer)
+    id: BaseModel.id
+    created_at: BaseModel.created_at
+    updated_at: BaseModel.updated_at
+    title: Mapped[str] = mapped_column(index=True, nullable=False)
+    authors: Mapped[str] = mapped_column(index=True, nullable=False)
+    abstract: Mapped[str] = mapped_column(index=True, nullable=False)
+    published_year: Mapped[int] = mapped_column(index=True, nullable=False)
+    published_month: Mapped[int] = mapped_column(index=True, nullable=True)
+    journal: Mapped[str] = mapped_column(index=True, nullable=True)
+    volume: Mapped[str] = mapped_column(index=True, nullable=True)
+    issue: Mapped[str] = mapped_column(index=True, nullable=True)
+    pages: Mapped[str] = mapped_column(index=True, nullable=True)
+    accession_number: Mapped[str] = mapped_column(index=True, nullable=True)
+    doi: Mapped[str] = mapped_column(index=True, nullable=True)
+    ref: Mapped[str] = mapped_column(index=True, nullable=True)
+    covidence_id: Mapped[int] = mapped_column(index=True, nullable=True)
+    study: Mapped[str] = mapped_column(index=True, nullable=True)
+    notes: Mapped[str] = mapped_column(index=True, nullable=True)
+    tags: Mapped[str] = mapped_column(index=True, nullable=True)
+    filename: Mapped[str] = mapped_column(index=True, nullable=True)
+    keywords: Mapped[str] = mapped_column(index=True, nullable=True)
+    citation: Mapped[str] = mapped_column(index=True, nullable=True)
+    bibliography: Mapped[str] = mapped_column(index=True, nullable=True)
+    full_text: Mapped[str] = mapped_column(index=True, nullable=True)
+    total_annotations: Mapped[int] = mapped_column(index=True, nullable=True)
+    total_distribution: Mapped[int] = mapped_column(index=True, nullable=True)
+    # annotations: Mapped[list[Annotation]] = relationship(
+    #     "Annotation", back_populates="studies_id"
+    # )
+    # distributions: Mapped[list[Distribution]] = relationship(
+    #     "Distribution", back_populates="studies_id"
+    # )
 
 
-class Theme(Base):
+class Theme(BaseModel):
     __tablename__ = "themes"
 
-    id = Column(Integer, primary_key=True)
-    name = Column(String)
-    description = Column(String)
-    color = Column(String)
-    studies = Column(String)
-    annotations = Column(String)
-    distribution = Column(String)
+    id: BaseModel.id
+    created_at: BaseModel.created_at
+    updated_at: BaseModel.updated_at
+    color: Mapped[str] = mapped_column(index=True, nullable=False)
+    term: Mapped[str] = mapped_column(index=True, nullable=False)
+    hex: Mapped[str] = mapped_column(index=True, nullable=False)
 
 
-class Annotation(Base):
+class Annotation(BaseModel):
     __tablename__ = "annotations"
 
-    id = Column(Integer, primary_key=True)
-    studies_id = Column(Integer)
-    theme_id = Column(Integer)
-    count = Column(Integer)
-    page_number = Column(Integer)
-    annot_rgb_color = Column(String)
-    annot_hex_color = Column(String)
-    annotation = Column(String)
-    text = Column(String)
+    id: BaseModel.id
+    created_at: BaseModel.created_at
+    updated_at: BaseModel.updated_at
+    studies_id: Mapped[UUID] = mapped_column("Study", ForeignKey("studies.id"))
+    theme_id: Mapped[UUID] = mapped_column("Theme", ForeignKey("themes.id"))
+    count: Mapped[int] = mapped_column(index=True, nullable=False)
+    page_number: Mapped[int] = mapped_column(index=True, nullable=False)
+    annot_rgb_color: Mapped[str] = mapped_column(index=True, nullable=False)
+    annot_hex_color: Mapped[str] = mapped_column(index=True, nullable=False)
+    text: Mapped[str] = mapped_column(index=True, nullable=False)
 
 
-class Distribution(Base):
+class Distribution(BaseModel):
     __tablename__ = "distribution"
 
-    id = Column(Integer, primary_key=True)
-    studies_id = Column(Integer)
-    theme_id = Column(Integer)
-    count = Column(Integer)
-    page_number = Column(Integer)
-    term = Column(String)
-    text = Column(String)
+    id: Mapped[UUID]
+    created_at: Mapped[datetime]
+    updated_at: Mapped[datetime]
+    studies_id: Mapped[UUID] = mapped_column("Study", ForeignKey("studies.id"))
+    theme_id: Mapped[UUID] = mapped_column("Theme", ForeignKey("themes.id"))
+    count: Mapped[int] = mapped_column(index=True, nullable=False)
+    page_number: Mapped[int] = mapped_column(index=True, nullable=False)
+    term: Mapped[str] = mapped_column(index=True, nullable=False)
+    text: Mapped[str] = mapped_column(index=True, nullable=False)

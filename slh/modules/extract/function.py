@@ -9,6 +9,7 @@ from bs4 import BeautifulSoup
 from pdfminer.high_level import extract_text
 
 from slh.utils.config import load_config
+from slh.utils.log import logger
 from slh.utils.db import get_db
 from slh.utils.file import file_name_generator
 from slh.utils.pdf import (
@@ -38,8 +39,8 @@ def extract_cit(db=False):
         list, list: List of citations, List of rows with None values
     """
 
-    db_conn = get_db()
-    rows = db_conn.query(Study).all()
+    dbs = get_db()
+    rows = dbs.query(Study).all()
 
     citations = []
     authorNoneRemoved = []
@@ -66,10 +67,10 @@ def extract_cit(db=False):
             citation = f"({authorsName}, {row[2]})"
 
             if db:
-                db_conn.query(Study).filter(Study.covidence_id == fileName[0]).update(
+                dbs.query(Study).filter(Study.covidence_id == fileName[0]).update(
                     {Study.citation: citation}
                 )
-                db_conn.commit()
+                dbs.commit()
             citations.append(citation)
 
     return citations, authorNoneRemoved
@@ -93,11 +94,11 @@ def extract_bib(csv, db=False):
     csv_df["Published Year"] = csv_df["Published Year"].astype(str)
     csv_df = csv_df.fillna("None")
 
-    db_conn = get_db()
+    dbs = get_db()
 
     bibs = []
 
-    db_res = db_conn.query(Study).all()
+    db_res = dbs.query(Study).all()
 
     for row in db_res:
         bib = {
@@ -118,12 +119,12 @@ def extract_bib(csv, db=False):
         cov: str = f"{bib['covidence_number']}"
 
         if db:
-            db_conn.query(Study).filter(Study.covidence_id == cov).update(
+            dbs.query(Study).filter(Study.covidence_id == cov).update(
                 {Study.bibliography: bibliography}
             )
-            db_conn.commit()
+            dbs.commit()
 
-    db_conn.close()
+    dbs.close()
 
     return bibs
 
@@ -219,12 +220,12 @@ def extract_filename(csv, rename=False, db=False):
         file_name: str = file_name_generator(covidence_number, i, year)
 
         if db:
-            db_conn = get_db()
-            db_conn.query(Study).filter(Study.covidence_id == covidence_number).update(
+            dbs = get_db()
+            dbs.query(Study).filter(Study.covidence_id == covidence_number).update(
                 {Study.filename: file_name}
             )
-            db_conn.commit()
-            db_conn.close()
+            dbs.commit()
+            dbs.close()
 
         if rename:
             pdf_path = os.path.join(config_data["pdf_path"], f"{covidence_number}.pdf")
@@ -280,12 +281,12 @@ def extract_keywords(cov, pdf_path, db=False):
         all_keywords.append(f"{cov} {keywords}")
         print(cov, keywords)
         if db:
-            db_conn = get_db()
-            db_conn.query(Study).filter(Study.covidence_id == cov).update(
+            dbs = get_db()
+            dbs.query(Study).filter(Study.covidence_id == cov).update(
                 {Study.keywords: keywords}
             )
-            db_conn.commit()
-            db_conn.close()
+            dbs.commit()
+            dbs.close()
 
     return all_keywords
 
@@ -307,29 +308,48 @@ def extract_annots(cov: int, color: str, pdf_path: str, db: bool = False):
     Returns:
         total_count (int), return_list (list): Total count of the annotations found in the pdf file, and the list of the annotations
     """
-    doc = fitz.open(pdf_path)
     total_count = 0
     page_annots = []
     page_number = 0
     return_list = []
 
-    for page in doc:
-        count = 0
-        page_number = page.number + 1
-        page_annots = page.annots()
-
-        for annot in page_annots:
-            if annot.type[1] == "Highlight":
-                annot_color = annot.colors["stroke"]
-                hex_color = rgb_to_hex(annot_color)
-                annot_rgb_fixed = tuple(int(color * 255) for color in annot_color)
-                if color != "":
-                    # TODO: get theme info from db
-                    theme_hex_color = "#a28ae5"
-                    theme_description = "Regulatory Sandbox"
-                    theme_color = "Magenta"
-                    color_matched = is_color_close(annot_color, theme_hex_color)
-                    if color_matched:
+    with fitz.open(pdf_path) as doc:
+        for page in doc:
+            count = 0
+            page_number = page.number + 1
+            page_annots = page.annots()
+            for annot in page_annots:
+                if annot.type[1] == "Highlight":
+                    annot_color = annot.colors["stroke"]
+                    hex_color = rgb_to_hex(annot_color)
+                    annot_rgb_fixed = tuple(int(color * 255) for color in annot_color)
+                    if color != "":
+                        # TODO: get theme info from db
+                        theme_hex_color = "#a28ae5"
+                        theme_description = "Regulatory Sandbox"
+                        theme_color = "Magenta"
+                        color_matched = is_color_close(annot_color, theme_hex_color)
+                        if color_matched:
+                            text = get_pdf_text(page, annot.rect)
+                            if any(d["paragraph_text"] == text for d in return_list):
+                                continue
+                            else:
+                                total_count += 1
+                                count += 1
+                                item = {
+                                    "covidence_number": cov,
+                                    "count": count,
+                                    "searched_color": color,
+                                    "page_number": page_number,
+                                    "annot_rgb_color": annot_rgb_fixed,
+                                    "annot_hex_color": hex_color,
+                                    "theme_hex_color": theme_hex_color,
+                                    "theme_description": theme_description,
+                                    "theme_color": theme_color,
+                                    "paragraph_text": text,
+                                }
+                                return_list.append(item)
+                    else:
                         text = get_pdf_text(page, annot.rect)
                         if any(d["paragraph_text"] == text for d in return_list):
                             continue
@@ -339,38 +359,18 @@ def extract_annots(cov: int, color: str, pdf_path: str, db: bool = False):
                             item = {
                                 "covidence_number": cov,
                                 "count": count,
-                                "searched_color": color,
                                 "page_number": page_number,
                                 "annot_rgb_color": annot_rgb_fixed,
                                 "annot_hex_color": hex_color,
-                                "theme_hex_color": theme_hex_color,
-                                "theme_description": theme_description,
-                                "theme_color": theme_color,
                                 "paragraph_text": text,
                             }
                             return_list.append(item)
-                else:
-                    text = get_pdf_text(page, annot.rect)
-                    if any(d["paragraph_text"] == text for d in return_list):
-                        continue
-                    else:
-                        total_count += 1
-                        count += 1
-                        item = {
-                            "covidence_number": cov,
-                            "count": count,
-                            "page_number": page_number,
-                            "annot_rgb_color": annot_rgb_fixed,
-                            "annot_hex_color": hex_color,
-                            "paragraph_text": text,
-                        }
-                        return_list.append(item)
 
         if db:
-            db_conn = get_db()
-            theme_id = db_conn.query(Theme).filter(Theme.color == hex_color).first().id
+            dbs = get_db()
+            theme_id = dbs.query(Theme).filter(Theme.color == hex_color).first().id
             for i in return_list:
-                db_conn.add(
+                dbs.add(
                     Annotation(
                         studies_id=cov,
                         theme_id=theme_id,
@@ -378,12 +378,11 @@ def extract_annots(cov: int, color: str, pdf_path: str, db: bool = False):
                         page_number=i["page_number"],
                         annot_rgb_color=i["annot_rgb_color"],
                         annot_hex_color=i["annot_hex_color"],
-                        annotation=i["annotation"],
                         text=i["paragraph_text"],
                     )
                 )
-            db_conn.commit()
-            db_conn.close()
+            dbs.commit()
+            dbs.close()
 
     return total_count, return_list
 
@@ -393,46 +392,49 @@ def extract_annots(cov: int, color: str, pdf_path: str, db: bool = False):
 ##
 
 
-def extract_dist(pdf_path, term, cov, db=False):
+def extract_dist(pdf_path: str, term: str, cov: str, db=False):
     """Extracts the distribution of the term from the pdf file and updates the distribution table in the database
 
     Args:
         pdf_path (path): The full path to the pdf file
         term (str): The term to search for in the pdf file
-        cov (sid): Internal Study ID from the database e.g. Covidence number
+        cov (int): Internal Study ID from the database e.g. Covidence number
         db (bool, optional): Save to the database? - Defaults to False.
 
     Returns:
         total_count (int), return_list (list): Total count of the term found in the pdf file, and the list of the distribution of the term
     """
-    doc = fitz.open(pdf_path)
     total_count = 0
     return_list = []
-    for page in doc:
-        count = 0
-        res = page.search_for(term)
 
-        if res != []:
-            for rect in res:
-                text = get_pdf_text(page, rect)
-                if any(d["paragraph_text"] == text for d in return_list):
-                    continue
-                else:
-                    total_count += 1
-                    count += 1
-                    item: dict = {
-                        "page_number": page.number + 1,
-                        "term": term,
-                        "count": count,
-                        "paragraph_text": text,
-                    }
-                    return_list.append(item)
+    with fitz.open(pdf_path) as doc:
+        for page in doc:
+            count = 0
+            res = page.search_for(term)
+            if res != []:
+                for rect in res:
+                    text = get_pdf_text(page, rect)
+                    if any(d["paragraph_text"] == text for d in return_list):
+                        continue
+                    else:
+                        total_count += 1
+                        count += 1
+                        item: dict = {
+                            "studies_id": cov,
+                            "pdf_path": pdf_path,
+                            "count": count,
+                            "page_number": page.number + 1,
+                            "term": term,
+                            "paragraph_text": text,
+                        }
+                        return_list.append(item)
 
     if db:
-        db_conn = get_db()
-        theme_id = db_conn.query(Theme).filter(Theme.term == term).first().id
+        dbs = get_db()
+        dbs.begin()
+        theme_id = dbs.query(Theme).filter(Theme.term == term).first().id
         for i in return_list:
-            db_conn.add(
+            dbs.add(
                 Distribution(
                     studies_id=cov,
                     theme_id=theme_id,
@@ -442,7 +444,7 @@ def extract_dist(pdf_path, term, cov, db=False):
                     text=i["paragraph_text"],
                 )
             )
-        db_conn.commit()
-        db_conn.close()
+        dbs.commit()
+        dbs.close()
 
     return total_count, return_list
