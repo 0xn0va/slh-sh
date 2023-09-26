@@ -8,11 +8,13 @@ import sqlite3 as sql
 from rich import print
 from typing_extensions import Annotated
 
+from slh.utils.log import logger
 from slh.utils.file import get_conf
 from slh.modules.sync import (
     get_spreadsheet_by_url,
     get_worksheet_by_name,
     update_sheet_cell,
+    sync_studies_sheet,
 )
 
 app = typer.Typer()
@@ -57,14 +59,14 @@ def update(
     curr: sql.Cursor = conn.cursor()
 
     if cov != "" and col != "" and "," not in cov and "-" not in cov:
-        if apply:
-            print(
-                f"Updating Covidence id {cov} on column {col} of Sheet {sheet} in Google Sheet..."
-            )
-        else:
-            print(
-                f"Would update Covidence id {cov} on column {col} of Sheet {sheet} in Google Sheet..."
-            )
+        # if apply:
+        #     print(
+        #         f"Updating Covidence id {cov} on column {col} of Sheet {sheet} in Google Sheet..."
+        #     )
+        # else:
+        #     print(
+        #         f"Would update Covidence id {cov} on column {col} of Sheet {sheet} in Google Sheet..."
+        #     )
 
         curr.execute(f"SELECT {col} FROM studies WHERE Covidence = '{cov}'")
         db_res: str = curr.fetchone()
@@ -92,12 +94,12 @@ def update(
             print(f"Empty {col} for {cov}, skipping...")
 
     elif allcol and col != "":
-        if apply:
-            print(f"Updating all data in column {col} of {sheet} of Google Sheet...")
-        else:
-            print(
-                f"Would update all data in column {col} of {sheet} of Google Sheet..."
-            )
+        # if apply:
+        #     print(f"Updating all data in column {col} of {sheet} of Google Sheet...")
+        # else:
+        #     print(
+        #         f"Would update all data in column {col} of {sheet} of Google Sheet..."
+        #     )
 
         # select all Keywords from database where Covidence is id_col_values
         for id_col_value in id_col_values[3:]:
@@ -139,38 +141,15 @@ def update(
         if apply:
             print(f"Appending all data in the {alltable} to a new Worksheet...")
             print(gs)
-            sheet = get_spreadsheet_by_url(gs)
-            randomString = "".join(random.choices(string.ascii_lowercase, k=4))
-            # create a new worksheet
-            new_ws = sheet.add_worksheet(
-                title=f"slh-{randomString}", rows="1000", cols="200"
-            )
-            print(f"New Worksheet created: slh-{randomString}")
 
-            # get column from studies table from sqlite db
-            curr.execute(f"PRAGMA table_info({alltable})")
-            col_names = curr.fetchall()
-            col_names = [tup[1] for tup in col_names]
-            new_ws.append_row(col_names)
-            time.sleep(3)
-
-            # get all rows in studies table from sqlite db
-            curr.execute(f"SELECT * FROM {alltable}")
-            db_res: str = curr.fetchall()
-            # add all data from studies table of sqlite dababase to the new Worksheet
-            for row in db_res:
-                row = list(row)
-                new_ws.append_row(row)
-                print(f":white_check_mark: {row[0]}")
-                # sleep for 3 seconds to avoid Google API rate limit
-                time.sleep(3)
+            new_worksheet_title = sync_studies_sheet(gs)
 
             print(
                 f"""
 
             :tada: Sync finished successfully from database to Google Sheet:
 
-            New Worksheet: {new_ws.title}
+            New Worksheet: {new_worksheet_title}
             Table: {alltable}
             Google Sheet {gs}...
 

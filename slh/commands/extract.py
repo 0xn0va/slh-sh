@@ -1,5 +1,6 @@
 import typer
 import os
+import datetime
 
 from rich import print
 from pathlib import Path
@@ -15,6 +16,7 @@ from slh.modules.extract import (
     extract_keywords,
     extract_annots,
     extract_dist,
+    extract_dist_sheet_sync,
 )
 
 app = typer.Typer()
@@ -260,8 +262,14 @@ def dist(
     ] = "",
     db: Annotated[bool, typer.Option(help="Save to SQLite database file")] = False,
     all: Annotated[bool, typer.Option(help="All PDFs")] = False,
+    sheet: Annotated[
+        bool, typer.Option(help="Apply to Distribution Worksheet on Google Sheet")
+    ] = False,
 ):
     """Extracts the distribution of a search term in the PDFs"""
+
+    if sheet:
+        res = extract_dist_sheet_sync()
 
     if all and cov == "":
         pdf_dir: str = get_pdf_dir()
@@ -276,7 +284,9 @@ def dist(
                 }
                 print(msg)
             else:
-                logger().info(f"{pdf_path} is not a PDF file.")
+                now = datetime.datetime.now()
+                fnow = now.strftime("%Y-%m-%d %H:%M:%S")
+                logger().info(f"{fnow} {pdf_path} is not a PDF file.")
     elif cov != "" and all == False:
         pdf_path = get_file_path(cov)
         total_count, dist_list = extract_dist(pdf_path, term, cov, db)

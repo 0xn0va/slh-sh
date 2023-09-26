@@ -417,12 +417,22 @@ def extract_dist(pdf_path: str, term: str, cov: str, db=False):
                     if any(d["text"] == text for d in return_list):
                         continue
                     else:
+                        page_number = page.number + 1
+                        # get citation from the database for cov
+                        dbs = get_db()
+                        citation = (
+                            dbs.query(Study)
+                            .filter(Study.covidence_id == cov)
+                            .first()
+                            .citation
+                        )
+                        text = f" {text} {citation} page {page_number}."
                         total_count += 1
                         count += 1
                         item: dict = {
                             "studies_id": cov,
                             "count": count,
-                            "page_number": page.number + 1,
+                            "page_number": page_number,
                             "term": term,
                             "text": text,
                         }
@@ -456,3 +466,24 @@ def extract_dist(pdf_path: str, term: str, cov: str, db=False):
         dbs.close()
 
     return total_count, return_list
+
+
+def extract_dist_sheet_sync():
+    dbs = get_db()
+    rows = dbs.query(Study).all()
+    for row in rows:
+        cov = row.covidence_id
+        total_dist = row.total_distribution
+
+        # get all the distribution rows for this covidence number matches studies_id in distribution table
+        dist_rows = (
+            dbs.query(Distribution).filter(Distribution.studies_id == row.id).all()
+        )
+
+        for dist_row in dist_rows:
+            count = dist_row.count
+            page_number = dist_row.page_number
+            term = dist_row.term
+            text = dist_row.text
+
+    pass
