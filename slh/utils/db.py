@@ -17,12 +17,6 @@ Base = declarative_base()
 class BaseModel(Base):
     __abstract__ = True
 
-    # id: Mapped[UUID] = mapped_column(
-    #     UUID(as_uuid=True),
-    #     primary_key=True,
-    #     index=True,
-    #     default=lambda: str(uuid4()),
-    # )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=func.now(), nullable=False
     )

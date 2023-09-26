@@ -4,9 +4,7 @@ import gspread
 
 from oauth2client.service_account import ServiceAccountCredentials
 
-from slh.utils.config import load_config
-
-config_data = load_config()
+from slh.utils.file import get_conf
 
 
 def gs_auth():
@@ -17,7 +15,7 @@ def gs_auth():
             "https://www.googleapis.com/auth/drive",
         ]
         credentials = ServiceAccountCredentials.from_json_keyfile_name(
-            config_data["google_credentials"], scope
+            get_conf("google_credentials"), scope
         )
         gc = gspread.authorize(credentials)
         return gc
