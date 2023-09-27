@@ -56,7 +56,7 @@ def update(
     if cov != "" and sheetcol != "" and "," not in cov and "-" not in cov:
         # get Google Sheet's Worksheet's id column index values
         headers_row_values = get_worksheet_headers_row_values(ws)
-        id_col_value = get_worksheet_id_col_index_values(ws, idcol)
+        id_col_values = get_worksheet_id_col_index_values(ws, idcol)
         updating_col_index_header = get_worksheet_updating_col_index_header(
             headers_row_values, sheetcol
         )
@@ -64,14 +64,14 @@ def update(
         # db_res: str = curr.fetchone()
         dbs = get_db()
         # select [idcol = covidence] from database where idcol is id_col_value
-        db_res = dbs.query(Study).filter_by(idcol=id_col_value).first()
+        db_res = dbs.query(Study).filter_by(idcol=id_col_values).first()
         if db_res == None:
             print(f"Study {cov} not found in database!")
             sys.exit()
         elif db_res[0] != None:
             if apply:
                 update_sheet_cell(
-                    ws, id_col_value, cov, updating_col_index_header, db_res[0]
+                    ws, id_col_values, cov, updating_col_index_header, db_res[0]
                 )
                 print(
                     """

@@ -16,7 +16,8 @@ from slh.modules.extract import (
     extract_keywords,
     extract_annots,
     extract_dist,
-    extract_dist_sheet_sync,
+    extract_total_dist_sheet_sync,
+    extract_dist_ws_sheet_sync,
 )
 
 app = typer.Typer()
@@ -254,7 +255,7 @@ def annots(
 
 @app.command()
 def dist(
-    term: Annotated[str, typer.Argument(help="Search term")],
+    term: Annotated[str, typer.Argument(help="Search term")] = "",
     cov: Annotated[str, typer.Option(help="Covidence number")] = "",
     output: Annotated[
         str,
@@ -268,10 +269,15 @@ def dist(
 ):
     """Extracts the distribution of a search term in the PDFs"""
 
-    if sheet:
-        res = extract_dist_sheet_sync()
+    if sheet and term != "" and all == True and cov == "":
+        res_total_dist_col = extract_total_dist_sheet_sync()
+        # res_dist_ws = extract_dist_ws_sheet_sync()
 
-    if all and cov == "":
+        print(
+            f"Total distribution column update on Google Sheet Studies worksheet from db, {res_total_dist_col}"
+        )
+
+    if all and cov == "" and term != "":
         pdf_dir: str = get_pdf_dir()
         for file_name in os.listdir(pdf_dir):
             cov = file_name.split("_")[0].replace("#", "")
@@ -287,7 +293,7 @@ def dist(
                 now = datetime.datetime.now()
                 fnow = now.strftime("%Y-%m-%d %H:%M:%S")
                 logger().info(f"{fnow} {pdf_path} is not a PDF file.")
-    elif cov != "" and all == False:
+    elif cov != "" and term != "" and all == False:
         pdf_path = get_file_path(cov)
         total_count, dist_list = extract_dist(pdf_path, term, cov, db)
         msg = {

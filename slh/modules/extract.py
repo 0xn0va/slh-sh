@@ -16,6 +16,13 @@ from slh.utils.pdf import (
     get_pdf_text,
     is_color_close,
 )
+from slh.modules.sync import (
+    update_sheet_cell,
+    get_worksheet_by_name,
+    get_worksheet_id_col_index_values,
+    get_worksheet_updating_col_index_header,
+    get_worksheet_headers_row_values,
+)
 from slh.data.models import (
     Study,
     Theme,
@@ -468,7 +475,40 @@ def extract_dist(pdf_path: str, term: str, cov: str, db=False):
     return total_count, return_list
 
 
-def extract_dist_sheet_sync():
+def extract_total_dist_sheet_sync():
+    """Extracts the total distribution from the database and updates the Distribution Worksheet in the Google Sheet
+
+    Returns:
+        bool: True if updated successfully, False if not
+    """
+    headers_row_values = get_worksheet_headers_row_values(ws)
+    id_col_values = get_worksheet_id_col_index_values(ws, "Covidence")
+    updating_col_index_header = get_worksheet_updating_col_index_header(
+        headers_row_values, "Distribution"
+    )
+    gs = get_conf("gs_url")
+    ws = get_worksheet_by_name(gs, "Distribution")
+    dbs = get_db()
+    rows = dbs.query(Study).all()
+    for row in rows:
+        # update distribution column in google sheet from total_distribution column in database
+        cov = row.covidence_id
+        td = row.total_distribution  # db result
+        try:
+            # update sheet cell with td value where covidence number matches cov
+            res = update_sheet_cell(
+                ws, id_col_values, cov, updating_col_index_header, td
+            )
+            time.sleep(3)
+        except:
+            logger().warning(
+                f"Google API rate limit reached, or other API error, please try again later!"
+            )
+            continue
+    return res
+
+
+def extract_dist_ws_sheet_sync():
     dbs = get_db()
     rows = dbs.query(Study).all()
     for row in rows:
