@@ -203,6 +203,7 @@ def sync_studies_sheet(gs):
             logger().warning(
                 f"Google API rate limit reached, or other API error, please try again later!"
             )
+            continue
 
         # sleep for 3 seconds to avoid Google API rate limit
         time.sleep(3)

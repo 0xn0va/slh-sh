@@ -10,7 +10,7 @@ from pdfminer.high_level import extract_text
 
 from slh.utils.log import logger
 from slh.utils.db import get_db
-from slh.utils.file import file_name_generator, get_conf
+from slh.utils.file import file_name_generator, get_conf, get_random_string
 from slh.utils.pdf import (
     rgb_to_hex,
     get_pdf_text,
@@ -22,6 +22,7 @@ from slh.modules.sync import (
     get_worksheet_id_col_index_values,
     get_worksheet_updating_col_index_header,
     get_worksheet_headers_row_values,
+    create_new_worksheet,
 )
 from slh.data.models import (
     Study,
@@ -511,6 +512,9 @@ def extract_total_dist_sheet_sync():
 
 
 def extract_dist_ws_sheet_sync():
+    new_ws_name = f"Distribution-{get_random_string()}"
+    new_ws = create_new_worksheet(get_conf("gs_url"), new_ws_name)
+
     dbs = get_db()
     rows = dbs.query(Study).all()
     for row in rows:
@@ -521,11 +525,23 @@ def extract_dist_ws_sheet_sync():
         dist_rows = (
             dbs.query(Distribution).filter(Distribution.studies_id == row.id).all()
         )
-
         for dist_row in dist_rows:
             count = dist_row.count
             page_number = dist_row.page_number
-            term = dist_row.term
             text = dist_row.text
 
-    pass
+            # append cov, count and page_number in the format of "Page page_number occurance count" to the new_ws as a column header and under count columns append the text
+            try:
+                res = new_ws.append_row(
+                    [
+                        f"{cov} Page {page_number} occurance {count}",
+                        text,
+                    ]
+                )
+                time.sleep(3)
+            except:
+                logger().warning(
+                    f"Google API rate limit reached, or other API error, please try again later!"
+                )
+                continue
+    return res
