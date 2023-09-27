@@ -11,10 +11,17 @@ from typing_extensions import Annotated
 from slh.utils.log import logger
 from slh.utils.file import get_conf
 from slh.modules.sync import (
-    get_spreadsheet_by_url,
     get_worksheet_by_name,
     update_sheet_cell,
     sync_studies_sheet,
+    sync_studies_column_sheet,
+    get_worksheet_id_col_index_values,
+    get_worksheet_updating_col_index_header,
+    get_worksheet_headers_row_values,
+)
+from slh.utils.db import get_db
+from slh.data.models import (
+    Study,
 )
 
 app = typer.Typer()
@@ -22,7 +29,7 @@ app = typer.Typer()
 
 @app.command()
 def update(
-    col: Annotated[str, typer.Option(help="Column name in Google Sheet")] = "",
+    sheetcol: Annotated[str, typer.Option(help="Column name in Google Sheet")] = "",
     # TODO: handle range when passed by user as cov, Use a number, a range e.g. 1-20 or multiple numbers e.g 1,30,2
     cov: Annotated[str, typer.Option(help="Covidence number as ID")] = "",
     sheet: Annotated[str, typer.Option(help="Name of the Sheet")] = get_conf(
@@ -46,38 +53,25 @@ def update(
     """
     if alltable == "" and apply:
         ws = get_worksheet_by_name(gs, sheet)
-
-        header_row: int = int(get_conf("gs_header_row_number"))
-        header_row_values = ws.row_values(header_row)
-        # get index number of provided Column e.g "Keywords" in header_values
-        updating_col_index_header = header_row_values.index(col)
-        id_col_index = header_row_values.index(idcol)
-        # get all values of id_col_index from header_row to the last row
-        id_col_values = ws.col_values(id_col_index + 1)
-
-    conn: sql.connect = sql.connect(get_conf("sqlite_db"))
-    curr: sql.Cursor = conn.cursor()
-
-    if cov != "" and col != "" and "," not in cov and "-" not in cov:
-        # if apply:
-        #     print(
-        #         f"Updating Covidence id {cov} on column {col} of Sheet {sheet} in Google Sheet..."
-        #     )
-        # else:
-        #     print(
-        #         f"Would update Covidence id {cov} on column {col} of Sheet {sheet} in Google Sheet..."
-        #     )
-
-        curr.execute(f"SELECT {col} FROM studies WHERE Covidence = '{cov}'")
-        db_res: str = curr.fetchone()
-
+    if cov != "" and sheetcol != "" and "," not in cov and "-" not in cov:
+        # get Google Sheet's Worksheet's id column index values
+        headers_row_values = get_worksheet_headers_row_values(ws)
+        id_col_value = get_worksheet_id_col_index_values(ws, idcol)
+        updating_col_index_header = get_worksheet_updating_col_index_header(
+            headers_row_values, sheetcol
+        )
+        # curr.execute(f"SELECT {sheetcol} FROM studies WHERE Covidence = '{cov}'")
+        # db_res: str = curr.fetchone()
+        dbs = get_db()
+        # select [idcol = covidence] from database where idcol is id_col_value
+        db_res = dbs.query(Study).filter_by(idcol=id_col_value).first()
         if db_res == None:
             print(f"Study {cov} not found in database!")
             sys.exit()
         elif db_res[0] != None:
             if apply:
                 update_sheet_cell(
-                    ws, id_col_values, cov, updating_col_index_header, db_res[0]
+                    ws, id_col_value, cov, updating_col_index_header, db_res[0]
                 )
                 print(
                     """
@@ -91,83 +85,40 @@ def update(
             else:
                 print(f"Would update {cov} with '{db_res[0]}'")
         else:
-            print(f"Empty {col} for {cov}, skipping...")
-
-    elif allcol and col != "":
-        # if apply:
-        #     print(f"Updating all data in column {col} of {sheet} of Google Sheet...")
-        # else:
-        #     print(
-        #         f"Would update all data in column {col} of {sheet} of Google Sheet..."
-        #     )
-
-        # select all Keywords from database where Covidence is id_col_values
-        for id_col_value in id_col_values[3:]:
-            curr.execute(
-                f"SELECT {col} FROM studies WHERE Covidence = '{id_col_value}'"
-            )
-            db_res: str = curr.fetchone()
-            # check if SELECT found any value
-            if db_res == None:
-                print(f"Study {id_col_value} not found in database!")
-                continue
-            elif db_res[0] != None:
-                if apply:
-                    update_sheet_cell(
-                        ws,
-                        id_col_values,
-                        id_col_value,
-                        updating_col_index_header,
-                        db_res[0],
-                    )
-                    # sleep for 3 seconds to avoid Google API rate limit
-                    time.sleep(3)
-                else:
-                    print(f"Would update {id_col_value} with '{db_res[0]}'")
-            else:
-                print(f"Empty {col} for {id_col_value}, skipping...")
-
+            print(f"Empty {sheetcol} for {cov}, skipping...")
+    elif allcol and sheetcol != "":
+        res = sync_studies_column_sheet(gs, idcol, sheetcol)
         print(
             f"""
-
             :tada: Sync finished successfully from database to Google Sheet:
-            Column: {col}
+            Column: {sheetcol}
             Sheet: {sheet}
             Google Sheet {gs}...
-
             """
         )
     elif alltable != "":
         if apply:
             print(f"Appending all data in the {alltable} to a new Worksheet...")
             print(gs)
-
             new_worksheet_title = sync_studies_sheet(gs)
-
             print(
                 f"""
-
             :tada: Sync finished successfully from database to Google Sheet:
-
             New Worksheet: {new_worksheet_title}
             Table: {alltable}
             Google Sheet {gs}...
-
             """
             )
         else:
             print(
                 f"""
-
                 By adding --apply the following will happen:
                 1. Would create a new Worksheet at Google Sheet from database...
                 2. Would add all data from {alltable} table of sqlite dababase to the new Worksheet
-
                 """
             )
-
     else:
-        print(f"Invalid covidence id {cov}, {col} or table name {alltable}!")
+        print(f"Invalid covidence id {cov}, {sheetcol} or table name {alltable}!")
         # if cov contains , or - then it's a range
         # if "," in cov:
         #     print("Multiple detected!")
@@ -185,15 +136,12 @@ def update(
         #             else:
         #                 print(f"Study {id_col_value} not found in database!")
         #                 continue
-
         #     sys.exit()
         # elif "-" in cov:
         #     print("Range detected!")
         #     cov = cov.split("-")
         #     print(cov)
         #     sys.exit()
-
-    conn.close()
 
 
 @app.command()
