@@ -18,6 +18,7 @@ from slh.utils.pdf import (
 )
 from slh.modules.sync import (
     update_sheet_cell,
+    get_spreadsheet_by_url,
     get_worksheet_by_name,
     get_worksheet_id_col_index_values,
     get_worksheet_updating_col_index_header,
@@ -512,36 +513,90 @@ def extract_total_dist_sheet_sync():
 
 
 def extract_dist_ws_sheet_sync():
-    new_ws_name = f"Distribution-{get_random_string()}"
-    new_ws = create_new_worksheet(get_conf("gs_url"), new_ws_name)
+    # new_ws_name = f"Distribution-{get_random_string()}"
+    # sheet = get_spreadsheet_by_url(get_conf("gs_url"))
+    # new_ws = create_new_worksheet(sheet, new_ws_name)
 
     dbs = get_db()
-    rows = dbs.query(Study).all()
-    for row in rows:
-        cov = row.covidence_id
-        total_dist = row.total_distribution
+    # rows = dbs.query(Study).all()
+    # for row in rows:
+    # cov = row.covidence_id
+    # total_dist = row.total_distribution
+    # get all the distribution rows for this covidence number matches studies_id in distribution table
+    dist_rows = dbs.query(Distribution).all()
+    dist_rows_df = pd.DataFrame(
+        [
+            {
+                "covidence_number": dist_row.studies_id,
+                "count": dist_row.count,
+                "page_number": dist_row.page_number,
+                "term": dist_row.term,
+                "text": dist_row.text,
+            }
+            for dist_row in dist_rows
+        ]
+    )
+    # # print(dist_rows_df)
+    # page_numbers_grouped = dist_rows_df.groupby("page_number")
 
-        # get all the distribution rows for this covidence number matches studies_id in distribution table
-        dist_rows = (
-            dbs.query(Distribution).filter(Distribution.studies_id == row.id).all()
-        )
-        for dist_row in dist_rows:
-            count = dist_row.count
-            page_number = dist_row.page_number
-            text = dist_row.text
+    # # print grouped page numbers
+    # for page_number, page_number_group in page_numbers_grouped:
+    #     print(page_number)
+    #     print(page_number_group)
 
-            # append cov, count and page_number in the format of "Page page_number occurance count" to the new_ws as a column header and under count columns append the text
-            try:
-                res = new_ws.append_row(
-                    [
-                        f"{cov} Page {page_number} occurance {count}",
-                        text,
-                    ]
-                )
-                time.sleep(3)
-            except:
-                logger().warning(
-                    f"Google API rate limit reached, or other API error, please try again later!"
-                )
-                continue
-    return res
+    cov_grouped = dist_rows_df.groupby("covidence_number")
+    for cov, cov_group in cov_grouped:
+        print(cov)
+        # print(cov_group)
+        cov_page_number_grouped = cov_group.groupby("page_number")
+        for page_number, page_number_group in cov_page_number_grouped:
+            print(page_number)
+            print(page_number_group["count"].sum())
+            print(page_number_group)
+
+    # for page_number, page_number_group in page_numbers_grouped:
+    # try:
+    #     res = new_ws.append_row(
+    #         [
+    #             page_number_group["studies_id"].tolist()[0],
+    #             # total_dist,
+    #             page_number,
+    #             page_number_group["count"].sum(),
+    #             page_number_group["text"].tolist()[0],
+    #         ]
+    #     )
+    #     logger().info(
+    #         f"Added {page_number_group['studies_id'].tolist()[0]} Page {page_number} occurance {page_number_group['count']} to {new_ws_name} worksheet"
+    #     )
+    #     time.sleep(3)
+    # except:
+    #     logger().warning(
+    #         f"Google API rate limit reached, or other API error, please try again later!"
+    #     )
+    #     continue
+
+    # for dist_row in dist_rows:
+    #     count = dist_row.count
+    #     page_number = dist_row.page_number
+    #     text = dist_row.text
+
+    #     try:
+    #         res = new_ws.append_row(
+    #             [
+    #                 cov,
+    #                 total_dist,
+    #                 page_number,
+    #                 count,
+    #                 text,
+    #             ]
+    #         )
+    #         logger().info(
+    #             f"Added {cov} Page {page_number} occurance {count} to {new_ws_name} worksheet"
+    #         )
+    #         time.sleep(3)
+    #     except:
+    #         logger().warning(
+    #             f"Google API rate limit reached, or other API error, please try again later!"
+    #         )
+    #         continue
+    return True

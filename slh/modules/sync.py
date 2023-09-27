@@ -1,6 +1,3 @@
-import sys
-import random
-import string
 import time
 import gspread
 
