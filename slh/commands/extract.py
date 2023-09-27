@@ -262,19 +262,29 @@ def dist(
     ] = "",
     db: Annotated[bool, typer.Option(help="Save to SQLite database file")] = False,
     all: Annotated[bool, typer.Option(help="All PDFs")] = False,
-    sheet: Annotated[
+    tdsheet: Annotated[
+        bool,
+        typer.Option(
+            help="Apply to Distribution Column on gs_studies_sheet_name Worksheet of Google Sheet"
+        ),
+    ] = False,
+    wsdsheet: Annotated[
         bool, typer.Option(help="Apply to Distribution Worksheet on Google Sheet")
     ] = False,
 ):
     """Extracts the distribution of a search term in the PDFs"""
 
-    if sheet == True and all == True and term == "" and cov == "":
+    if tdsheet == True and all == True and term == "" and cov == "":
         res_total_dist_col = extract_total_dist_sheet_sync()
-        # res_dist_ws = extract_dist_ws_sheet_sync()
-
         print(
             f"Total distribution column update on Google Sheet Studies worksheet from db, {res_total_dist_col}"
         )
+    elif wsdsheet == True and all == True and term == "" and cov == "":
+        res_dist_ws = extract_dist_ws_sheet_sync()
+        print(
+            f"Total distribution worksheet update on Google Sheet from db, {res_dist_ws}"
+        )
+        # res_dist_ws = extract_dist_ws_sheet_sync()
     elif all and cov == "" and term != "":
         pdf_dir: str = get_pdf_dir()
         for file_name in os.listdir(pdf_dir):

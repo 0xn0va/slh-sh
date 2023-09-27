@@ -6,7 +6,7 @@ import gspread
 
 from oauth2client.service_account import ServiceAccountCredentials
 
-from slh.utils.file import get_conf
+from slh.utils.file import get_conf, get_random_string
 from slh.utils.log import logger, get_now
 from slh.utils.db import get_db
 from slh.data.models import (
@@ -121,6 +121,23 @@ def get_worksheet_id_col_index_values(ws, idcol):
     return id_col_values
 
 
+def create_new_worksheet(sheet, name):
+    """Create new Google Sheet's Worksheet
+
+    Args:
+        sheet (Worksheet): Google Sheet's Worksheet
+        rows (str): Google Sheet's Worksheet's rows
+        cols (str): Google Sheet's Worksheet's columns
+
+    Returns:
+        Worksheet: New Google Sheet's Worksheet
+    """
+    new_ws = sheet.add_worksheet(title=f"{name}", rows="1000", cols="200")
+    print(f"New Worksheet created: {name}")
+
+    return new_ws
+
+
 def update_sheet_cell(
     ws, id_col_values, id_col_value, updating_col_index_header, db_res
 ):
@@ -160,9 +177,9 @@ def sync_studies_sheet(gs):
         str: New Worksheet title
     """
     sheet = get_spreadsheet_by_url(gs)
-    randomString = "".join(random.choices(string.ascii_lowercase, k=4))
-    new_ws = sheet.add_worksheet(title=f"slh-{randomString}", rows="1000", cols="200")
-    print(f"New Worksheet created: slh-{randomString}")
+    new_ws_name = f"slh-{get_random_string()}"
+    new_ws = sheet.add_worksheet(title=f"{new_ws_name}", rows="1000", cols="200")
+    print(f"New Worksheet created: {new_ws_name}")
 
     dbs = get_db()
     rows = dbs.query(Study).all()

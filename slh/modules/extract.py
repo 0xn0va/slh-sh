@@ -482,9 +482,11 @@ def extract_total_dist_sheet_sync():
         bool: True if updated successfully, False if not
     """
     gs = get_conf("gs_url")
-    ws = get_worksheet_by_name(gs, "Studies")
+    ws = get_worksheet_by_name(gs, get_conf("gs_studies_sheet_name"))
     headers_row_values = get_worksheet_headers_row_values(ws)
-    id_col_values = get_worksheet_id_col_index_values(ws, "Covidence")
+    id_col_values = get_worksheet_id_col_index_values(
+        ws, get_conf("gs_studies_id_column_name")
+    )
     updating_col_index_header = get_worksheet_updating_col_index_header(
         headers_row_values, "Distribution"
     )

@@ -1,5 +1,7 @@
 import os
 import yaml
+import random
+import string
 
 from pathlib import Path
 
@@ -73,3 +75,13 @@ def file_name_generator(covidence_number: str, authors: str, year: str) -> list[
         return name
     else:
         return None
+
+
+def get_random_string():
+    """Generates a random string.
+
+    Returns:
+        str: Random lowercase 4 letters string.
+    """
+    random_string = "".join(random.choices(string.ascii_lowercase, k=4))
+    return random_string
