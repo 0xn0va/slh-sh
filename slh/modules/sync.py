@@ -7,7 +7,7 @@ import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 
 from slh.utils.file import get_conf
-from slh.utils.log import logger
+from slh.utils.log import logger, get_now
 from slh.utils.db import get_db
 from slh.data.models import (
     Study,
@@ -141,7 +141,7 @@ def update_sheet_cell(
             id_col_values.index(id_col_value) + 1, updating_col_index_header + 1, db_res
         )
         print(f"Updated {id_col_value} with '{db_res}'")
-        logger().info(f"Updated {id_col_value} with '{db_res}'")
+        logger().info(f"{get_now()} Updated {id_col_value} with '{db_res}'")
         return True
     except gspread.exceptions.APIError:
         logger().warning(

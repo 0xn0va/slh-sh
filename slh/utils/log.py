@@ -1,5 +1,6 @@
 import os
 import logging
+import datetime
 from logging.handlers import RotatingFileHandler
 
 
@@ -15,6 +16,8 @@ def logger():
         format="%(asctime)s %(levelname)s: %(message)s",
     )
     logger = logging.getLogger(__name__)
+    # remove old handlers
+    logger.handlers = []
 
     file_handler = logging.FileHandler("./logs/app.log")  # TODO: make this configurable
 
@@ -27,5 +30,11 @@ def logger():
     file_handler = RotatingFileHandler(
         "./logs/app.log", maxBytes=10 * 1024 * 1024, backupCount=5
     )
-
     return logger
+
+
+def get_now():
+    """Get current date and time"""
+    now = datetime.datetime.now()
+    fnow = now.strftime("%Y-%m-%d %H:%M:%S")
+    return fnow

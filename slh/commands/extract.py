@@ -1,13 +1,12 @@
 import typer
 import os
-import datetime
 
 from rich import print
 from pathlib import Path
 from typing_extensions import Annotated
 
 from slh.utils.file import get_pdf_dir, get_file_path, get_conf
-from slh.utils.log import logger
+from slh.utils.log import logger, get_now
 from slh.modules.extract import (
     extract_cit,
     extract_bib,
@@ -269,15 +268,14 @@ def dist(
 ):
     """Extracts the distribution of a search term in the PDFs"""
 
-    if sheet and term != "" and all == True and cov == "":
+    if sheet == True and all == True and term == "" and cov == "":
         res_total_dist_col = extract_total_dist_sheet_sync()
         # res_dist_ws = extract_dist_ws_sheet_sync()
 
         print(
             f"Total distribution column update on Google Sheet Studies worksheet from db, {res_total_dist_col}"
         )
-
-    if all and cov == "" and term != "":
+    elif all and cov == "" and term != "":
         pdf_dir: str = get_pdf_dir()
         for file_name in os.listdir(pdf_dir):
             cov = file_name.split("_")[0].replace("#", "")
@@ -290,9 +288,7 @@ def dist(
                 }
                 print(msg)
             else:
-                now = datetime.datetime.now()
-                fnow = now.strftime("%Y-%m-%d %H:%M:%S")
-                logger().info(f"{fnow} {pdf_path} is not a PDF file.")
+                logger().info(f"{get_now()} {pdf_path} is not a PDF file.")
     elif cov != "" and term != "" and all == False:
         pdf_path = get_file_path(cov)
         total_count, dist_list = extract_dist(pdf_path, term, cov, db)
