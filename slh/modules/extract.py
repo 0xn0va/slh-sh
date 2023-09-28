@@ -4,6 +4,7 @@ import re
 import fitz
 import requests
 import pandas as pd
+import sys
 
 from bs4 import BeautifulSoup
 from pdfminer.high_level import extract_text
@@ -513,9 +514,9 @@ def extract_total_dist_sheet_sync():
 
 
 def extract_dist_ws_sheet_sync():
-    # new_ws_name = f"Distribution-{get_random_string()}"
-    # sheet = get_spreadsheet_by_url(get_conf("gs_url"))
-    # new_ws = create_new_worksheet(sheet, new_ws_name)
+    new_ws_name = f"Distribution-{get_random_string()}"
+    sheet = get_spreadsheet_by_url(get_conf("gs_url"))
+    new_ws = create_new_worksheet(sheet, new_ws_name)
 
     dbs = get_db()
     # rows = dbs.query(Study).all()
@@ -527,76 +528,85 @@ def extract_dist_ws_sheet_sync():
     dist_rows_df = pd.DataFrame(
         [
             {
-                "covidence_number": dist_row.studies_id,
-                "count": dist_row.count,
-                "page_number": dist_row.page_number,
-                "term": dist_row.term,
+                "covidence_number": dbs.query(Study)
+                .filter(Study.id == dist_row.studies_id)
+                .first()
+                .covidence_id,
+                "page_number": str(dist_row.page_number),
                 "text": dist_row.text,
+                "term": dist_row.term,
+                "count": dist_row.count,
             }
             for dist_row in dist_rows
         ]
     )
-    # # print(dist_rows_df)
-    # page_numbers_grouped = dist_rows_df.groupby("page_number")
+    # add occurrence column, group by covidence_number and page_number
+    dist_rows_df["occurrence"] = dist_rows_df.groupby(
+        ["covidence_number", "page_number"]
+    )["text"].transform("size")
+    dist_rows_df["total_occurrence"] = dist_rows_df.groupby(["covidence_number"])[
+        "text"
+    ].transform("size")
+    # dist_rows_df.pivot_table(  # TODO: dissect this
+    #     values="text",
+    #     index=["covidence_number", "page_number"],
+    #     columns="occurrence",
+    #     aggfunc="first",
+    # ).reset_index().apply(lambda x: ",".join(x.dropna()), axis=1).to_frame(
+    #     name="text"
+    # ).reset_index().rename(
+    #     columns={"level_1": "occurrence"}
+    # )
+    # convert covidence_number and page_number to int
+    dist_rows_df["covidence_number"] = dist_rows_df["covidence_number"].astype(int)
+    dist_rows_df["page_number"] = dist_rows_df["page_number"].astype(int)
+    # sort by covidence_number and page_number
+    dist_rows_df = dist_rows_df.sort_values(
+        by=["covidence_number", "page_number"], ascending=True
+    )
+    dist_rows_df = dist_rows_df.reset_index(drop=True)
 
-    # # print grouped page numbers
-    # for page_number, page_number_group in page_numbers_grouped:
-    #     print(page_number)
-    #     print(page_number_group)
+    # build a list for each cov where text has same page number, add text to list
+    dist_cov_list = []
+    for cov in dist_rows_df["covidence_number"].unique():
+        dist_cov_list.append(
+            dist_rows_df.loc[dist_rows_df["covidence_number"] == cov].values.tolist()
+        )
 
-    cov_grouped = dist_rows_df.groupby("covidence_number")
-    for cov, cov_group in cov_grouped:
-        print(cov)
-        # print(cov_group)
-        cov_page_number_grouped = cov_group.groupby("page_number")
-        for page_number, page_number_group in cov_page_number_grouped:
-            print(page_number)
-            print(page_number_group["count"].sum())
-            print(page_number_group)
-
-    # for page_number, page_number_group in page_numbers_grouped:
-    # try:
-    #     res = new_ws.append_row(
-    #         [
-    #             page_number_group["studies_id"].tolist()[0],
-    #             # total_dist,
-    #             page_number,
-    #             page_number_group["count"].sum(),
-    #             page_number_group["text"].tolist()[0],
-    #         ]
-    #     )
-    #     logger().info(
-    #         f"Added {page_number_group['studies_id'].tolist()[0]} Page {page_number} occurance {page_number_group['count']} to {new_ws_name} worksheet"
-    #     )
-    #     time.sleep(3)
-    # except:
-    #     logger().warning(
-    #         f"Google API rate limit reached, or other API error, please try again later!"
-    #     )
-    #     continue
-
-    # for dist_row in dist_rows:
-    #     count = dist_row.count
-    #     page_number = dist_row.page_number
-    #     text = dist_row.text
-
-    #     try:
-    #         res = new_ws.append_row(
-    #             [
-    #                 cov,
-    #                 total_dist,
-    #                 page_number,
-    #                 count,
-    #                 text,
-    #             ]
-    #         )
-    #         logger().info(
-    #             f"Added {cov} Page {page_number} occurance {count} to {new_ws_name} worksheet"
-    #         )
-    #         time.sleep(3)
-    #     except:
-    #         logger().warning(
-    #             f"Google API rate limit reached, or other API error, please try again later!"
-    #         )
-    #         continue
+    # append dist_values to new_ws
+    dist_values = dist_rows_df.values.tolist()
+    for dist_value in dist_values:
+        # covidence_number
+        cov = dist_value[0]
+        # Searched term
+        term = dist_value[3]
+        # Total number of blocks the searched term found in the page
+        total_occurence = dist_value[6]
+        # Number of blocks the searched term found in the page
+        occurernce = dist_value[5]
+        # Page number
+        page_number = dist_value[1]
+        # total number of searched term found in the block of text
+        count = dist_value[4]
+        # block of text
+        text = dist_value[2]
+        try:
+            res = new_ws.append_row(
+                [
+                    cov,
+                    term,
+                    total_occurence,
+                    occurernce,
+                    page_number,
+                    count,
+                    text,
+                ]
+            )
+            logger().info(f"Added to worksheet")
+            time.sleep(2)
+        except:
+            logger().warning(
+                f"Google API rate limit reached, or other API error, please try again later!, res: {res}"
+            )
+            continue
     return True
