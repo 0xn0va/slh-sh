@@ -4,7 +4,6 @@ import re
 import fitz
 import requests
 import pandas as pd
-import sys
 
 from bs4 import BeautifulSoup
 from pdfminer.high_level import extract_text
@@ -514,16 +513,15 @@ def extract_total_dist_sheet_sync():
 
 
 def extract_dist_ws_sheet_sync():
+    """Extracts the distribution from the database and updates the Distribution Worksheet in the Google Sheet
+
+    Returns:
+        bool: True if updated successfully, False if not
+    """
     new_ws_name = f"Distribution-{get_random_string()}"
     sheet = get_spreadsheet_by_url(get_conf("gs_url"))
     new_ws = create_new_worksheet(sheet, new_ws_name)
-
     dbs = get_db()
-    # rows = dbs.query(Study).all()
-    # for row in rows:
-    # cov = row.covidence_id
-    # total_dist = row.total_distribution
-    # get all the distribution rows for this covidence number matches studies_id in distribution table
     dist_rows = dbs.query(Distribution).all()
     dist_rows_df = pd.DataFrame(
         [
@@ -547,16 +545,6 @@ def extract_dist_ws_sheet_sync():
     dist_rows_df["total_occurrence"] = dist_rows_df.groupby(["covidence_number"])[
         "text"
     ].transform("size")
-    # dist_rows_df.pivot_table(  # TODO: dissect this
-    #     values="text",
-    #     index=["covidence_number", "page_number"],
-    #     columns="occurrence",
-    #     aggfunc="first",
-    # ).reset_index().apply(lambda x: ",".join(x.dropna()), axis=1).to_frame(
-    #     name="text"
-    # ).reset_index().rename(
-    #     columns={"level_1": "occurrence"}
-    # )
     # convert covidence_number and page_number to int
     dist_rows_df["covidence_number"] = dist_rows_df["covidence_number"].astype(int)
     dist_rows_df["page_number"] = dist_rows_df["page_number"].astype(int)
@@ -565,14 +553,12 @@ def extract_dist_ws_sheet_sync():
         by=["covidence_number", "page_number"], ascending=True
     )
     dist_rows_df = dist_rows_df.reset_index(drop=True)
-
     # build a list for each cov where text has same page number, add text to list
     dist_cov_list = []
     for cov in dist_rows_df["covidence_number"].unique():
         dist_cov_list.append(
             dist_rows_df.loc[dist_rows_df["covidence_number"] == cov].values.tolist()
         )
-
     # append dist_values to new_ws
     dist_values = dist_rows_df.values.tolist()
     for dist_value in dist_values:

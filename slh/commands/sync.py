@@ -1,7 +1,4 @@
 import typer
-import time
-import random
-import string
 import sys
 import sqlite3 as sql
 
