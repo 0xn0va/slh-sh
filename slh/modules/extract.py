@@ -5,6 +5,8 @@ import fitz
 import requests
 import pandas as pd
 
+import sys
+
 from bs4 import BeautifulSoup
 from pdfminer.high_level import extract_text
 
@@ -518,6 +520,7 @@ def extract_dist_ws_sheet_sync():
     Returns:
         bool: True if updated successfully, False if not
     """
+
     new_ws_name = f"Distribution-{get_random_string()}"
     sheet = get_spreadsheet_by_url(get_conf("gs_url"))
     new_ws = create_new_worksheet(sheet, new_ws_name)
@@ -586,9 +589,16 @@ def extract_dist_ws_sheet_sync():
                     page_number,
                     count,
                     text,
-                ]
+                ],
+                include_values_in_response=True,
             )
             logger().info(f"Added to worksheet")
+            # get the url for the first cell of the new appended row
+            # cell = new_ws.find(cov)
+            # print(res)
+            # cell =  res
+            # cell_url = cell.url
+            # res = total_dist_linker(cov, cell_url)
             time.sleep(2)
         except:
             logger().warning(
@@ -596,3 +606,25 @@ def extract_dist_ws_sheet_sync():
             )
             continue
     return True
+
+
+def total_dist_linker(cov, dist_sheet_link):
+    # get the studies worksheet from google sheets
+    gs = get_conf("gs_url")
+    ws = get_worksheet_by_name(gs, get_conf("gs_studies_sheet_name"))
+    # get the total distribution cell from the studies worksheet for the row that Covidence number matches cov
+    id_col_values = get_worksheet_id_col_index_values(
+        ws, get_conf("gs_studies_id_column_name")
+    )
+    updating_col_index_header = get_worksheet_updating_col_index_header(
+        get_worksheet_headers_row_values(ws), "Distribution"
+    )
+    print(id_col_values)
+    print(updating_col_index_header)
+
+    # update the total distribution cell for the row that Covidence number matches cov with the dist_sheet_link hyperlink
+    res = update_sheet_cell(
+        ws, id_col_values, cov, updating_col_index_header, dist_sheet_link
+    )
+
+    return res

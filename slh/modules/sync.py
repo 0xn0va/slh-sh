@@ -136,7 +136,7 @@ def create_new_worksheet(sheet, name):
 
 
 def update_sheet_cell(
-    ws, id_col_values, id_col_value, updating_col_index_header, db_res
+    ws, id_col_values, id_col_value, updating_col_index_header, new_value
 ):
     """Update Google Sheet's Worksheet's cell
 
@@ -145,17 +145,19 @@ def update_sheet_cell(
         id_col_values (Any): Google Sheet's Worksheet's id column values
         id_col_value (Any): Google Sheet's Worksheet's id column value
         updating_col_index_header (Any): Google Sheet's Worksheet's updating column index header
-        db_res (Any): Value to be updated from database
+        new_value (Any): Value to be updated
 
     Returns:
         bool: True if updated successfully, False if not
     """
     try:
         ws.update_cell(
-            id_col_values.index(id_col_value) + 1, updating_col_index_header + 1, db_res
+            id_col_values.index(id_col_value) + 1,
+            updating_col_index_header + 1,
+            new_value,
         )
-        print(f"Updated {id_col_value} with '{db_res}'")
-        logger().info(f"{get_now()} Updated {id_col_value} with '{db_res}'")
+        print(f"Updated {id_col_value} with '{new_value}'")
+        logger().info(f"{get_now()} Updated {id_col_value} with '{new_value}'")
         return True
     except gspread.exceptions.APIError:
         logger().warning(
