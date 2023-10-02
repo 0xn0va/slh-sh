@@ -5,9 +5,9 @@ import sqlite3 as sql
 from rich import print
 from typing_extensions import Annotated
 
-from slh.utils.log import logger
-from slh.utils.file import get_conf
-from slh.modules.sync import (
+from slh_sh.utils.log import logger
+from slh_sh.utils.file import get_conf
+from slh_sh.modules.sync import (
     get_worksheet_by_name,
     update_sheet_cell,
     sync_studies_sheet,
@@ -16,8 +16,8 @@ from slh.modules.sync import (
     get_worksheet_updating_col_index_header,
     get_worksheet_headers_row_values,
 )
-from slh.utils.db import get_db
-from slh.data.models import (
+from slh_sh.utils.db import get_db
+from slh_sh.data.models import (
     Study,
 )
 

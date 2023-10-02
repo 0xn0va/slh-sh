@@ -3,7 +3,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy import ForeignKey
 
 
-from slh.utils.db import BaseModel
+from slh_sh.utils.db import BaseModel
 
 
 class Study(BaseModel):

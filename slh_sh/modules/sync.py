@@ -3,10 +3,10 @@ import gspread
 
 from oauth2client.service_account import ServiceAccountCredentials
 
-from slh.utils.file import get_conf, get_random_string
-from slh.utils.log import logger, get_now
-from slh.utils.db import get_db
-from slh.data.models import (
+from slh_sh.utils.file import get_conf, get_random_string
+from slh_sh.utils.log import logger, get_now
+from slh_sh.utils.db import get_db
+from slh_sh.data.models import (
     Study,
 )
 

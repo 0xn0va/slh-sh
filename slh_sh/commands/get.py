@@ -12,7 +12,7 @@ from typing_extensions import Annotated
 
 # from scholarly import scholarly
 
-from slh.utils.file import get_file_path, get_conf
+from slh_sh.utils.file import get_file_path, get_conf
 
 app = typer.Typer()
 

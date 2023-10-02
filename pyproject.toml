@@ -1,12 +1,12 @@
 [tool.poetry]
-name = "slh"
+name = "slh-sh"
 version = "0.1.0"
 description = ""
 authors = ["Nova Sky <2989791+0xnovasky@users.noreply.github.com>"]
 readme = "README.md"
 
 [tool.poetry.scripts]
-slh = "slh.main:app"
+slh-sh = "slh_sh.main:app"
 
 [tool.poetry.dependencies]
 python = ">=3.10,<3.13"

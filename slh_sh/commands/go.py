@@ -5,7 +5,7 @@ from pathlib import Path
 from rich import print
 from typing_extensions import Annotated
 
-from slh.utils.file import get_file_path, get_conf
+from slh_sh.utils.file import get_file_path, get_conf
 
 app = typer.Typer()
 

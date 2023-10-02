@@ -7,12 +7,12 @@ from rich import print
 
 config: Path = Path.cwd() / "config.yaml"
 if config.is_file():
-    import slh.commands.extract as extract
-    import slh.commands.get as get
-    import slh.commands.add as add
-    import slh.commands.go as go
-    import slh.commands.sync as sync
-    import slh.commands.self as self
+    import slh_sh.commands.extract as extract
+    import slh_sh.commands.get as get
+    import slh_sh.commands.add as add
+    import slh_sh.commands.go as go
+    import slh_sh.commands.sync as sync
+    import slh_sh.commands.self as self
 else:
     print(
         """

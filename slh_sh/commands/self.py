@@ -4,8 +4,8 @@ import time
 from pathlib import Path
 from rich import print
 
-from slh.utils.config import saveConfigFile
-from slh.utils.db import create_db
+from slh_sh.utils.config import saveConfigFile
+from slh_sh.utils.db import create_db
 
 
 app = typer.Typer()

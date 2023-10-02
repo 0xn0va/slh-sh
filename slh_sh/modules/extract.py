@@ -10,15 +10,15 @@ import sys
 from bs4 import BeautifulSoup
 from pdfminer.high_level import extract_text
 
-from slh.utils.log import logger
-from slh.utils.db import get_db
-from slh.utils.file import file_name_generator, get_conf, get_random_string
-from slh.utils.pdf import (
+from slh_sh.utils.log import logger
+from slh_sh.utils.db import get_db
+from slh_sh.utils.file import file_name_generator, get_conf, get_random_string
+from slh_sh.utils.pdf import (
     rgb_to_hex,
     get_pdf_text,
     is_color_close,
 )
-from slh.modules.sync import (
+from slh_sh.modules.sync import (
     update_sheet_cell,
     get_spreadsheet_by_url,
     get_worksheet_by_name,
@@ -27,7 +27,7 @@ from slh.modules.sync import (
     get_worksheet_headers_row_values,
     create_new_worksheet,
 )
-from slh.data.models import (
+from slh_sh.data.models import (
     Study,
     Theme,
     Annotation,

@@ -5,9 +5,9 @@ from rich import print
 from pathlib import Path
 from typing_extensions import Annotated
 
-from slh.utils.file import get_pdf_dir, get_file_path, get_conf
-from slh.utils.log import logger, get_now
-from slh.modules.extract import (
+from slh_sh.utils.file import get_pdf_dir, get_file_path, get_conf
+from slh_sh.utils.log import logger, get_now
+from slh_sh.modules.extract import (
     extract_cit,
     extract_bib,
     extract_dl,

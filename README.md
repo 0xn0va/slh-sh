@@ -1,7 +1,8 @@
 # SLRs Little Helper
 
 ```
-# slh --help
+# pip install slh-sh
+# slh-sh --help
 ```
 
 ## Google APP Script to add links to drive files
