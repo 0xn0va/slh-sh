@@ -608,23 +608,23 @@ def extract_dist_ws_sheet_sync():
     return True
 
 
-def total_dist_linker(cov, dist_sheet_link):
-    # get the studies worksheet from google sheets
-    gs = get_conf("gs_url")
-    ws = get_worksheet_by_name(gs, get_conf("gs_studies_sheet_name"))
-    # get the total distribution cell from the studies worksheet for the row that Covidence number matches cov
-    id_col_values = get_worksheet_id_col_index_values(
-        ws, get_conf("gs_studies_id_column_name")
-    )
-    updating_col_index_header = get_worksheet_updating_col_index_header(
-        get_worksheet_headers_row_values(ws), "Distribution"
-    )
-    print(id_col_values)
-    print(updating_col_index_header)
+# def total_dist_linker(cov, dist_sheet_link):
+#     # get the studies worksheet from google sheets
+#     gs = get_conf("gs_url")
+#     ws = get_worksheet_by_name(gs, get_conf("gs_studies_sheet_name"))
+#     # get the total distribution cell from the studies worksheet for the row that Covidence number matches cov
+#     id_col_values = get_worksheet_id_col_index_values(
+#         ws, get_conf("gs_studies_id_column_name")
+#     )
+#     updating_col_index_header = get_worksheet_updating_col_index_header(
+#         get_worksheet_headers_row_values(ws), "Distribution"
+#     )
+#     print(id_col_values)
+#     print(updating_col_index_header)
 
-    # update the total distribution cell for the row that Covidence number matches cov with the dist_sheet_link hyperlink
-    res = update_sheet_cell(
-        ws, id_col_values, cov, updating_col_index_header, dist_sheet_link
-    )
+#     # update the total distribution cell for the row that Covidence number matches cov with the dist_sheet_link hyperlink
+#     res = update_sheet_cell(
+#         ws, id_col_values, cov, updating_col_index_header, dist_sheet_link
+#     )
 
-    return res
+#     return res

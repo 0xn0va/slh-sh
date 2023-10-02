@@ -142,15 +142,6 @@ def update(
 
 
 @app.command()
-# shows differencess and missing fields
-# https://www.geeksforgeeks.org/pandas-find-the-difference-between-two-dataframes/
-# https://datascientyst.com/compare-two-pandas-dataframes-get-differences/
-def diff(data: str):
-    """ """
-    print(f"Diff DB with Google Sheet: {data}...")
-
-
-@app.command()
 def config():
     """
     Iterate over Themes, Searches, and Sources in config.yaml and insert into database.
@@ -213,3 +204,12 @@ def config():
             print(f"Source {source} already exists in database!")
 
     conn.close()
+
+
+@app.command()
+# shows differencess and missing fields
+# https://www.geeksforgeeks.org/pandas-find-the-difference-between-two-dataframes/
+# https://datascientyst.com/compare-two-pandas-dataframes-get-differences/
+def diff(data: str):
+    """ """
+    print(f"Diff DB with Google Sheet: {data}...")
