@@ -4,27 +4,30 @@ import sys
 from pathlib import Path
 from rich import print
 
+import slh_sh.commands.extract as extract
+import slh_sh.commands.get as get
+import slh_sh.commands.add as add
+import slh_sh.commands.go as go
+import slh_sh.commands.sync as sync
+import slh_sh.commands.self as self
 
-config: Path = Path.cwd() / "config.yaml"
-if config.is_file():
-    import slh_sh.commands.extract as extract
-    import slh_sh.commands.get as get
-    import slh_sh.commands.add as add
-    import slh_sh.commands.go as go
-    import slh_sh.commands.sync as sync
-    import slh_sh.commands.self as self
-else:
-    print(
-        """
-        [bold green]Good day researcher :wave:[/bold green]
+# check for config file and if not exists use default config
 
-        The [red]config.yaml[/red] file does not exist in the current directory.
 
-            - Run [yellow]slh self init[/yellow] to initialize a new SLR project :rocket:
-            - [blue]https://github.com/xN0Vx/slh[/blue]
-        """
-    )
-    sys.exit(1)
+# config: Path = Path.cwd() / "config.yaml"
+# if config.is_file():
+# else:
+#     print(
+#         """
+#         [bold green]Good day researcher :wave:[/bold green]
+
+#         The [red]config.yaml[/red] file does not exist in the current directory.
+
+#             - Run [yellow]slh self init[/yellow] to initialize a new SLR project :rocket:
+#             - [blue]https://github.com/xN0Vx/slh[/blue]
+#         """
+#     )
+#     sys.exit(1)
 
 
 app = typer.Typer()

@@ -514,7 +514,7 @@ def extract_total_dist_sheet_sync():
     return res
 
 
-def extract_dist_ws_sheet_sync():
+def extract_dist_ws_sheet_sync(cov: str):
     """Extracts the distribution from the database and updates the Distribution Worksheet in the Google Sheet
 
     Returns:
@@ -525,7 +525,16 @@ def extract_dist_ws_sheet_sync():
     sheet = get_spreadsheet_by_url(get_conf("gs_url"))
     new_ws = create_new_worksheet(sheet, new_ws_name)
     dbs = get_db()
-    dist_rows = dbs.query(Distribution).all()
+    if cov == "":
+        dist_rows = dbs.query(Distribution).all()
+    else:
+        study_cov = dbs.query(Study).filter(Study.covidence_id == cov).first()
+        dist_rows = (
+            dbs.query(Distribution)
+            .filter(Distribution.studies_id == study_cov.id)
+            .all()
+        )
+    # dist_rows = dbs.query(Distribution).all()
     dist_rows_df = pd.DataFrame(
         [
             {

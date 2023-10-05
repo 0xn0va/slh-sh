@@ -307,6 +307,11 @@ def dist(
             "dist_list": dist_list,
         }
         print(msg)
+    elif cov != "" and term == "" and all == False and wsdsheet == True:
+        res_dist_ws = extract_dist_ws_sheet_sync(cov)
+        print(
+            f"Total distribution worksheet update on Google Sheet from db, {res_dist_ws}"
+        )
     else:
         print(
             """
