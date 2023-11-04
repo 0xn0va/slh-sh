@@ -40,7 +40,7 @@ def pdf(
     else:
         typer.launch(pdf_path)
     ##
-    ## Opens a PDF on certain page
+    ## Opens a PDF on certain page, Not Supported by PDF reader Apps or OS
     ##
     # if page != "":
     #     # open the pdf file with the page number with local pdf reader

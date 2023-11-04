@@ -15,9 +15,7 @@ default_project_name = (
 )
 
 
-@app.command()
-def check():
-    print("Check... - Not Implemented Yet")
+
 
 
 @app.command()
@@ -30,6 +28,25 @@ def version():
         """
     )
 
+
+@app.command()
+def list():
+    """List all available commands and their descriptions."""
+    # # Get a list of all commands in the app
+    # typer_commands = app.registered_commands
+    # print(typer_commands)
+
+    # # Print a header
+    # print("Available commands:")
+
+    # # Iterate over the commands and print their names and descriptions
+    # for command in typer_commands:
+    #     name = command.__dict__["name"]
+    #     print(f"- {name}: {command.help}")
+
+@app.command()
+def check():
+    print("Check... - Not Implemented Yet")
 
 @app.command()
 def update():
@@ -49,23 +66,6 @@ def restore():
 @app.command()
 def logs():
     print("Logs... - Not Implemented Yet")
-
-
-@app.command()
-def list():
-    """List all available commands and their descriptions."""
-    # # Get a list of all commands in the app
-    # typer_commands = app.registered_commands
-    # print(typer_commands)
-
-    # # Print a header
-    # print("Available commands:")
-
-    # # Iterate over the commands and print their names and descriptions
-    # for command in typer_commands:
-    #     name = command.__dict__["name"]
-    #     print(f"- {name}: {command.help}")
-
 
 @app.command()
 def init(config: bool = typer.Option(False, help="Only create config file")):
