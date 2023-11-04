@@ -7,11 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+
 ## [0.1.1] - 2023-11-04
 
 ### Added
 
 - `self list` command. List all available commands and their descriptions.
+- Github Actions to deploy on pypi.
 
 ### Fixed
 
