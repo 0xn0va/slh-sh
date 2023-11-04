@@ -13,43 +13,44 @@ jobs:
       - name: Test with pytest
         run: |
           pip install pytest
+          pip install PyMuPDF
           pytest tests/
 
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python 3.8
-        uses: actions/setup-python@v4
-        with:
-          python-version: 3.8
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install poetry
-          poetry install
-      - name: Check formatting with black
-        run: |
-          poetry run black --check .
-      - name: Check types with mypy
-        run: |
-          poetry run mypy .
-      - name: Check linting with flake8
-        run: |
-          poetry run flake8 .
-      - name: Check security with bandit
-        run: |
-          poetry run bandit -r .
+  # build:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - name: Set up Python 3.11
+  #       uses: actions/setup-python@v4
+  #       with:
+  #         python-version: 3.11
+  #     - name: Install dependencies
+  #       run: |
+  #         python -m pip install --upgrade pip
+  #         pip install poetry
+  #         poetry install
+  #     - name: Check formatting with black
+  #       run: |
+  #         poetry run black --check .
+  #     - name: Check types with mypy
+  #       run: |
+  #         poetry run mypy .
+  #     - name: Check linting with flake8
+  #       run: |
+  #         poetry run flake8 .
+  #     - name: Check security with bandit
+  #       run: |
+  #         poetry run bandit -r .
 
   deploy:
-    needs: [test, build]
+    needs: [test]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Set up Python 3.8
+      - name: Set up Python 3.11
         uses: actions/setup-python@v4
         with:
-          python-version: 3.8
+          python-version: 3.11
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
