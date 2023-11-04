@@ -111,7 +111,7 @@ def csv(
 @app.command()
 # add doi # fetches, dls if available and adds an study
 def doi(
-    doi: Annotated[str, typer.Argument(help="DOI")],
+    doi: Annotated[str, typer.Argument(help="DOI - Not Implemented Yet")],
 ):
     print(f"DOI {doi}...")
 
@@ -119,7 +119,7 @@ def doi(
 @app.command()
 # add themes --cov --color
 def themes(
-    color: Annotated[str, typer.Option(help="Theme color")],
+    color: Annotated[str, typer.Option(help="Theme color - Not Implemented Yet")],
 ):
     print(f"Themes {color}...")
 
@@ -127,7 +127,7 @@ def themes(
 @app.command()
 # add annot --cov (updates the Studies based on cov number)
 def annot(
-    cov: Annotated[str, typer.Option(help="Covidence number")],
+    cov: Annotated[str, typer.Option(help="Covidence number - Not Implemented Yet")],
 ):
     print(f"Annot {cov}...")
 
@@ -135,7 +135,7 @@ def annot(
 @app.command()
 # add cit --cov (updates the Studies based on cov number)
 def cit(
-    cov: Annotated[str, typer.Option(help="Covidence number")],
+    cov: Annotated[str, typer.Option(help="Covidence number - Not Implemented Yet")],
 ):
     print(f"Cit {cov}...")
 
@@ -143,7 +143,7 @@ def cit(
 @app.command()
 # add sources --import csv/txt/json
 def sources(
-    source: Annotated[str, typer.Option(help="Source")],
+    source: Annotated[str, typer.Option(help="Source - Not Implemented Yet")],
 ):
     print(f"Sources {source}...")
 
@@ -151,7 +151,7 @@ def sources(
 @app.command()
 # add searches --import csv/txt/json
 def searches(
-    search: Annotated[str, typer.Option(help="Search")],
+    search: Annotated[str, typer.Option(help="Search - Not Implemented Yet")],
 ):
     print(f"Searches {search}...")
 
@@ -159,6 +159,6 @@ def searches(
 @app.command()
 # add status --cov --include/exclude/unknown
 def status(
-    cov: Annotated[str, typer.Option(help="Covidence number")],
+    cov: Annotated[str, typer.Option(help="Covidence number - Not Implemented Yet")],
 ):
     print(f"Status {cov}...")

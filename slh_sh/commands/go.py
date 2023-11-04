@@ -27,6 +27,7 @@ def gs(
 
 
 @app.command()
+# https://www.foxit.com/pdf-reader/
 def pdf(
     cov: Annotated[str, typer.Argument(help="Covidence number")] = "",
     # page: Annotated[str, typer.Option(help="Page number")] = "",
@@ -59,6 +60,7 @@ def pdf(
 
 
 @app.command()
+# https://sqlitebrowser.org/dl/
 def db(
     sql: Annotated[str, typer.Argument(help="Name of SQLite database")] = get_conf(
         "sqlite_db"

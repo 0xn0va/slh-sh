@@ -17,7 +17,7 @@ default_project_name = (
 
 @app.command()
 def check():
-    print("Check...")
+    print("Check... - Not Implemented Yet")
 
 
 @app.command()
@@ -33,22 +33,22 @@ def version():
 
 @app.command()
 def update():
-    print("Update...")
+    print("Update... - Not Implemented Yet")
 
 
 @app.command()
 def backup():
-    print("Backup...")
+    print("Backup... - Not Implemented Yet")
 
 
 @app.command()
 def restore():
-    print("Restore...")
+    print("Restore... - Not Implemented Yet")
 
 
 @app.command()
 def logs():
-    print("Logs...")
+    print("Logs... - Not Implemented Yet")
 
 
 @app.command()
