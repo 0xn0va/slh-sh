@@ -5,25 +5,24 @@ from pathlib import Path
 from rich import print
 
 from slh_sh.utils.config import saveConfigFile
-from slh_sh.utils.db import create_db
 
+# from slh_sh.utils.db import create_db
+
+slh_version: str = "0.1.0"
 
 app = typer.Typer()
 
-default_project_name = (
+default_project_name: str = (
     f"slr-ai-thesis-{time.strftime('%Y')}-{time.strftime('%m')}-{time.strftime('%d')}"
 )
-
-
-
 
 
 @app.command()
 def version():
     print(
-        """
+        f"""
 
-            SLRs Little Helper (slh) v0.0.1
+            SLRs Little Helper (slh) {slh_version}
 
         """
     )
@@ -32,21 +31,56 @@ def version():
 @app.command()
 def list():
     """List all available commands and their descriptions."""
-    # # Get a list of all commands in the app
-    # typer_commands = app.registered_commands
-    # print(typer_commands)
+    print(
+        f"""
 
-    # # Print a header
-    # print("Available commands:")
+            SLRs Little Helper (slh) {slh_version}
 
-    # # Iterate over the commands and print their names and descriptions
-    # for command in typer_commands:
-    #     name = command.__dict__["name"]
-    #     print(f"- {name}: {command.help}")
+            Usage: slh-sh [OPTIONS] COMMAND [ARGS]...
+
+            Example:
+                # slh-sh --help
+                # slh-sh self --help
+                # slh-sh extract cit --help
+
+            Commands:
+                - self
+                    - init      # Initializes the project, questionaire or default config file
+                    - list      # Lists all available commands
+                    - check     # Checks if there is a new version
+                    - update    # Updates to the latest version.
+                    - backup    # Creates compressed backup file from the project directory.
+                    - restore   # Restores the project directory from the backup file
+                    - logs      # Shows the logs
+                    - version   # Shows the version
+                - add
+                    - csv       # Loads studies.csv into sqlite database.
+                - extract
+                    - cit       # Extracts and generates APA 7 citation from the file name in db and updates the citation column in the studies table.
+                    - bib       # Extracts the bibliography from the csv file and updates the bibliography column in the studies table.
+                    - dl        # Extracts the download link from the html file and downloads the pdf files.
+                    - filename  # Extracts the filename from the csv file and updates the filename column in the studies table.
+                    - keywords  # Extracts the keywords from the pdf file and updates the keywords column in the studies table.
+                    - annots    # Extracts the annotations from the pdf file and updates the annotations table in the database.
+                    - dist      # Extracts the distribution of the term from the pdf file and updates the distribution table in the database.
+                - sync
+                    - update    # Update the Google Sheets with data from Database.
+                    - config    # Iterate over Themes, Searches, and Sources in config.yaml and insert into database.
+                - get
+                    - info      # Prints basic infor about the project.
+                - go
+                    - gd        # Opens the Google Drive folder.
+                    - gs        # Opens the Google Sheet.
+                    - pdf       # Opens a PDF file in the default PDF reader.
+                    - db        # Opens the SQLite database file in the default database viewer.
+        """
+    )
+
 
 @app.command()
 def check():
     print("Check... - Not Implemented Yet")
+
 
 @app.command()
 def update():
@@ -66,6 +100,7 @@ def restore():
 @app.command()
 def logs():
     print("Logs... - Not Implemented Yet")
+
 
 @app.command()
 def init(config: bool = typer.Option(False, help="Only create config file")):
@@ -183,9 +218,9 @@ def init(config: bool = typer.Option(False, help="Only create config file")):
             if not project_dir.is_dir():
                 project_dir.mkdir()
 
-            # Create the sqlite database
-            sqlite_db_path = project_dir / sqlite_db
-            create_db(sqlite_db_path)
+            # # Create the sqlite database
+            # sqlite_db_path = project_dir / sqlite_db
+            # create_db(sqlite_db_path)
 
             if typer.confirm(
                 """
