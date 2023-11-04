@@ -41,7 +41,7 @@ from slh_sh.data.models import (
 
 
 def extract_cit(db=False):
-    """Extracts and generates APA 7 citation from the file name and updates the citation column in the studies table
+    """Extracts and generates APA 7 citation from the file name in db and updates the citation column in the studies table
 
     Returns:
         list, list: List of citations, List of rows with None values
@@ -143,7 +143,7 @@ def extract_bib(csv, db=False):
 
 
 def extract_dl(html, pdf_dir, html_id_element, html_dl_class):
-    """Extracts the download link from the html file and downloads the pdf file
+    """Extracts the download link from the html file and downloads the pdf files
 
     Args:
         html (file): html file name from config.yaml
