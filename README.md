@@ -178,11 +178,11 @@ sources:
 
 ### studies.csv
 
-1. Exported from Covidence, Zotero, etc.
+1. Exported from Covidence (Export > REFERENCES > Options [Full text review] > Format [CSV] ), Zotero, etc.
 2. The Columns of the Studies table will be created based on this file.
 3. Set `gs_studies_id_column_name` in confit.yaml (e.g. Covidence Number), it will be used as the ID of the study in google sheets.
 
-### export.html file containing PDF utls
+### export.html file containing PDF URLs
 
 1. Using Chrome browser, open the Covidence page with the list of studies.
 2. Right click on the page and choose "Save as" and choose "Webpage, HTML Only".
@@ -192,16 +192,22 @@ sources:
 
 ```bash
 # Install slh-sh
+slh-sh --help
 
 # See the help for a command
+slh-sh [Command] --help
 
 # See the available commands
+slh-sh self list
 
 # Initialize a new project folder
+slh-sh init
 
 # Import studies from CSV file to database
+slh-sh add csv studies.csv
 
 # Download PDF files
+slh-sh 
 
 # Rename PDF files
 
