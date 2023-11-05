@@ -1,6 +1,6 @@
 # tl;dr
 
-slh-sh ([slh.sh](slh.sh)) - A CLI tool in Python to automated repetitive tasks of a Systematic Literature Review project.
+slh-sh ([slh.sh](http://slh.sh)) - A CLI tool in Python to automated repetitive tasks of a Systematic Literature Review project.
 
 SLH: SLRs Little Helper
 
