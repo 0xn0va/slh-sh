@@ -1,3 +1,6 @@
+[![main](https://github.com/0xnovasky/slh-sh/actions/workflows/main.yaml/badge.svg)](https://github.com/0xnovasky/slh-sh/actions/workflows/main.yaml)
+[![branches](https://github.com/0xnovasky/slh-sh/actions/workflows/branches.yaml/badge.svg)](https://github.com/0xnovasky/slh-sh/actions/workflows/branches.yaml)
+
 # tl;dr
 
 slh-sh ([slh.sh](slh.sh)) - A CLI tool in Python to automated repetitive tasks of a Systematic Literature Review project.
