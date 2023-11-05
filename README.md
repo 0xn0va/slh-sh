@@ -48,9 +48,12 @@ There are at least 17 steps to do a Systematic Literature Review (SLR) with a Go
 slh-sh would automate the all the repetitive tasks.
 
 The only manual steps (12, 16, 17) would be:
+
 - Writing a minimal one line command
 - Reading the article and highlighting the texts based on provided Theme Color in Config File.
 - Writing your paper.
+
+Manual SLR steps with Google Sheets:
 
 1. Find the next study in the list on Covidence.
 2. Add new row to Google Sheet.
@@ -94,9 +97,9 @@ pip install slh-sh
 
 **Run**
 
-1. Create a folder and copy default config file or use `slh-sh init` to create a new project folder from default template or a questionaire.
-2. slh-sh with `slh-sh [Command] --help` to see the help for a command.
-3. `slh-sh self list` to see the available commands.
+1. Create a folder and copy default config file from below OR use `slh-sh init` to create a new project folder from default template or a questionaire.
+2. `slh-sh [Command] --help` - to see the help for a command.
+3. `slh-sh self list` - to see the available commands.
 
 
 ## Folder structure
@@ -116,7 +119,7 @@ pip install slh-sh
 ```
 
 
-## Example of Config File - config.yaml
+## Example Config File - config.yaml
 
 ```yaml
 #
