@@ -76,21 +76,30 @@ The only manual steps (12, 16, 17) would be:
 
 ## Installation
 
-1. Install Python 3.8 or higher.
-2. Install your favorite PDF viewer.
-3. Install a SQLite database viewer. (e.g https://sqlitebrowser.org/dl/)
+Install:
+
+1. Python 3.8 or higher.
+2. Favorite PDF viewer.
+3. SQLite database viewer. (e.g https://sqlitebrowser.org/dl/)
 4. Install slh-sh with pip.
 
 ```bash
 pip install slh-sh
 ```
-3. Run slh-sh with `slh-sh [Command] --help` to see the help for a command.
-4. Run `slh-sh self list` to see the available commands.
-5. Run `slh-sh init` to create a new project folder.
+Run:
+
+1. slh-sh with `slh-sh [Command] --help` to see the help for a command.
+2. `slh-sh self list` to see the available commands.
+3. `slh-sh init` to create a new project folder.
 
 
 ## Synopsis
 
+```bash
+
+
+
+```
 
 
 ## Tips and Tricks
