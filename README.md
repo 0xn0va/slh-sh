@@ -1,12 +1,10 @@
 # tl;dr
 
-slh-sh (slh.sh)
+slh-sh ([slh.sh](slh.sh)) - A CLI tool in Python to automated repetitive tasks of a Systematic Literature Review project.
 
 SLH: SLRs Little Helper
 
 SLR: Systematic Literature Review
-
-A Cross Platform CLI tool in Python to automated repetitive tasks of a Systematic Literature Review project.
 
 ```bash
 pip install slh-sh
@@ -16,7 +14,7 @@ slh-sh --help
 
 ## Features
 
-Extraction:
+**Extraction**
 - Import CSV files of studies to SQLite database and export to the Google SHeets (exported from, e.g. Covidence, Zotero, etc).
 - Extract PDF links from html files and download them.
 - Rename PDF files with provided format.
@@ -27,17 +25,17 @@ Extraction:
 - Extract distribution number of keywords in a study.
 - Save Extracted data to local SQLite Database.
 
-Sync:
+**Sync**
 - Update the data in Google Sheets on spesific Row, Column, Cell from database or complete sync to new Worksheet.
 
-Review:
+**Review**
 - Open PDF files with default PDF viewer from CLI with its ID number - `slh-sh go pdf 436`
 - Highlight PDF files with defined "Theme" in Config file with specific color.
 
-Fetch: (Under Development)
+**Fetch** (Under Development)
 - Fetch and format all related Highlighted text based on the Theme color.
 
-Manage:
+**Manage**
 - One project folder for config files, database, and PDF files.
 - Create new project folder with provided structure.
 - Backup and restore project folder. (Under Development)
@@ -77,12 +75,13 @@ The only manual steps (12, 16, 17) would be:
 
 ## Preperations
 
-Google Project and Google Sheets API:
+**Google Project and Google Sheets API**
 
 1. Create a Google Project and enable Google Drive and Google Sheets API. [create-project](https://developers.google.com/workspace/guides/create-project)
 2. Create a Google Service Account and download the credentials file. [create-credentials](https://developers.google.com/workspace/guides/create-credentials)
 3. Create a Google Sheet and share it with the Service Account email.
-Installation:
+
+**Installation**
 
 1. Python 3.8 or higher.
 2. Favorite PDF viewer.
@@ -92,14 +91,15 @@ Installation:
 ```bash
 pip install slh-sh
 ```
-Run:
+
+**Run**
 
 1. Create a folder and copy default config file or use `slh-sh init` to create a new project folder from default template or a questionaire.
 2. slh-sh with `slh-sh [Command] --help` to see the help for a command.
 3. `slh-sh self list` to see the available commands.
 
 
-## New project folder structure
+## Folder structure
 
 ```bash
 - slr-project-2023-09-19 (project folder)
@@ -116,7 +116,7 @@ Run:
 ```
 
 
-## Config File example (config.yaml)
+## Example of Config File - config.yaml
 
 ```yaml
 #
@@ -261,12 +261,14 @@ slh-sh go pdf [ID (Covidence Number)]
 
 ```
 
-
 ## Tips and Tricks
+
 - Pause syncing on Google Drive while editing a PDF file.
 
 
-### Google APP Script to add links to drive files
+### Google APP Script
+
+Adds Google Drive PDF links to the filename column of Google Sheets
 
 ```javascript
 function linkToDriveFile() {
@@ -288,8 +290,8 @@ function linkToDriveFile() {
 }
 ```
 
-
 ## Thanks
+
 slh-sh would not be possible without these great projects:
 - [Python](https://www.python.org/)
 - [Typer](https://typer.tiangolo.com/)
@@ -300,4 +302,5 @@ slh-sh would not be possible without these great projects:
 - \+ Work of many others.
 
 ## License
+
 This project is licensed under the terms of the MIT license.
