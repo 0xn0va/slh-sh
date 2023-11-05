@@ -8,7 +8,7 @@ from slh_sh.utils.config import saveConfigFile
 
 # from slh_sh.utils.db import create_db
 
-slh_version: str = "0.1.3"
+slh_version: str = "0.1.4"
 
 app = typer.Typer()
 
