@@ -1,6 +1,6 @@
 # tl;dr
 
-Name: slh-sh (slh.sh)
+slh-sh (slh.sh)
 
 SLH: SLRs Little Helper
 
@@ -10,6 +10,7 @@ A Cross Platform CLI tool in Python to automated repetitive tasks of a Systemati
 
 ```bash
 pip install slh-sh
+slh-sh init
 slh-sh --help
 ```
 
@@ -18,10 +19,10 @@ slh-sh --help
 Extraction:
 - Import CSV files of studies to SQLite database and export to the Google SHeets (exported from, e.g. Covidence, Zotero, etc).
 - Extract PDF links from html files and download them.
-- Rename PDF files with predefined format.
+- Rename PDF files with provided format.
 - Extract text from PDF files (based on searched term, based on Highlights) including the citation at the end of the paragraph.
-- Extract Citations with predefined format (e.g APA) from PDF files.
-- Extract Bibliography with predefined format (e.g APA) from PDF files.
+- Extract Citations with provided format (e.g APA) from PDF files.
+- Extract Bibliography with provided format (e.g APA) from PDF files.
 - Extract Keywords from PDF files.
 - Extract distribution number of keywords in a study.
 - Save Extracted data to local SQLite Database.
@@ -38,7 +39,7 @@ Fetch: (Under Development)
 
 Manage:
 - One project folder for config files, database, and PDF files.
-- Create new project folder with predefined structure.
+- Create new project folder with provided structure.
 - Backup and restore project folder. (Under Development)
 
 
@@ -50,7 +51,7 @@ slh-sh would automate the all the repetitive tasks.
 
 The only manual steps (12, 16, 17) would be:
 - Writing a minimal one line command
-- Reading the article and highlighting the texts based on predefined Theme Color in Config File.
+- Reading the article and highlighting the texts based on provided Theme Color in Config File.
 - Writing your paper.
 
 1. Find the next study in the list on Covidence.
@@ -74,13 +75,18 @@ The only manual steps (12, 16, 17) would be:
 19. Repeat.
 
 
-## Installation
+## Preperations
 
-Install:
+Google Project and Google Sheets API:
+
+1. Create a Google Project and enable Google Drive and Google Sheets API. [create-project](https://developers.google.com/workspace/guides/create-project)
+2. Create a Google Service Account and download the credentials file. [create-credentials](https://developers.google.com/workspace/guides/create-credentials)
+3. Create a Google Sheet and share it with the Service Account email.
+Installation:
 
 1. Python 3.8 or higher.
 2. Favorite PDF viewer.
-3. SQLite database viewer. (e.g https://sqlitebrowser.org/dl/)
+3. SQLite database viewer. (e.g [sqlitebrowser](https://sqlitebrowser.org/dl/))
 4. Install slh-sh with pip.
 
 ```bash
@@ -93,19 +99,19 @@ Run:
 3. `slh-sh self list` to see the available commands.
 
 
-## Project folder structure
+## New project folder structure
 
 ```bash
-- slr-project-23
+- slr-project-2023-09-19 (project folder)
   - config.yaml
   - slh.db
   - credentials.json
   - studies.csv
   - export.html
-  - pdf (folder)
-    - 1.pdf
-    - 2.pdf
-    - 3.pdf
+  - pdf_files (folder)
+    - Study_1.pdf
+    - Study_2.pdf
+    - Study_3.pdf
     - ...
 ```
 
@@ -188,9 +194,12 @@ sources:
 2. Right click on the page and choose "Save as" and choose "Webpage, HTML Only".
 3. The HTML file will be saved in the project folder.
 
-## Synopsis
+## Examples
 
 ```bash
+# Initialize a new project folder
+slh-sh init
+
 # Install slh-sh
 slh-sh --help
 
@@ -200,45 +209,55 @@ slh-sh [Command] --help
 # See the available commands
 slh-sh self list
 
-# Initialize a new project folder
-slh-sh init
-
 # Import studies from CSV file to database
 slh-sh add csv studies.csv
 
 # Download PDF files
-slh-sh 
+slh-sh extract dl
 
-# Rename PDF files
-
-# Extract file names to Studies table in the database based on predefined format
-
-# Rename PDF files with the predefined format from database
+# Generate filename based on the provided format, save in database, and rename PDF files
+slh-sh extract filename --rename --db
 
 # Extract Keywords from PDF files to Studies table in the database
+slh-sh extract keywords --cov [Covidence Number]
+slh-sh extract keywords --all --db
 
 # Extract Citations from PDF files to Studies table in the database
+slh-sh extract cit --db
 
 # Extract Bibliography from PDF files to Studies table in the  database
+slh-sh extract bib --db
 
 # Extract Distribution of a specific research keyword to Distribution table in database
-
-# Extract Annotatoins from PDF files to Annotations table in the database
-
-# Sync Studies table from database to Google Sheets Worksheet
-
-# Sync specific data from database to Google Sheets Worksheet's Cell or Row
+slh-sh extract dist [Term] --cov [Covidence Number]
+slh-sh extract dist [Term] --all --db
 
 # Sync Distribution table from database to Google Sheets Worksheet
+slh-sh extract dist [Term] --cov [Covidence Number] --wsdsheet
+
+# Extract Annotatoins from PDF files to Annotations table in the database
+TODO!
+
+# Sync the config file to database
+slh-sh sync config
+
+# Sync Studies table from database to Google Sheets Worksheet
+slh-sh sync update --allsheet --apply
+
+# Sync specific data from database to Google Sheets Worksheet's Cell or Row
+slh-sh sync update --col "Keywords" --cov [Covidence Number] --apply
 
 # Open Google Drive folder in browser
+slh-sh go gd
 
 # Open Google Sheets in browser
+slh-sh go gs
 
 # Open SQLite database wit default SQLite viewer
+slh-sh go db
 
 # Open PDF file with default PDF viewer
-
+slh-sh go pdf [ID (Covidence Number)]
 
 ```
 
