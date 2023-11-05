@@ -1,9 +1,20 @@
 # SLRs Little Helper
 
+tl;dr: A tool to help with the SLR process.
+
+## Installation
+
 ```
 # pip install slh-sh
 # slh-sh --help
 ```
+
+## Rationale
+
+
+## Examples
+
+
 
 ## Google APP Script to add links to drive files
 
