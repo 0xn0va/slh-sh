@@ -27,7 +27,7 @@ Extraction:
 - Save Extracted data to local SQLite Database.
 
 Sync:
- - Update the data in Google Sheets on spesific Row, Column, Cell from database or complete sync to new Worksheet.
+- Update the data in Google Sheets on spesific Row, Column, Cell from database or complete sync to new Worksheet.
 
 Review:
 - Open PDF files with default PDF viewer from CLI with its ID number - `slh-sh go pdf 436`
@@ -93,6 +93,23 @@ Run:
 3. `slh-sh self list` to see the available commands.
 
 
+## Project folder structure
+
+```bash
+- slr-project-23
+  - config.yaml
+  - slh.db
+  - credentials.json
+  - studies.csv
+  - export.html
+  - pdf (folder)
+    - 1.pdf
+    - 2.pdf
+    - 3.pdf
+    - ...
+```
+
+
 ## Config File example (config.yaml)
 
 ```yaml
@@ -118,52 +135,58 @@ Run:
 #
 # yamllint disable rule:line-length
 ---
-project_name: slr-ai-thesis-2023-09-19
-gs_url: 'https://docs.google.com/spreadsheets/d/1npBLSKPhNUHNoDQRWQY9Tf_Np6dzUH0TTamrX01513s'
-gd_url: 'https://drive.google.com/drive/folders/11pjqVjFXfsBVjG4CC0mzMSZ2zeLCXNrE'
+project_name: slr-thesis-2023-09-19
+gs_url: ''
+gd_url: ''
 csv_export: studies.csv
 html_export: export.html
 html_id_element: study-header
 html_dl_class: 'action-link download'
 google_credentials: credentials.json
 sqlite_db: slh.db
-pdf_path: 'G:\Other computers\My MacBook Pro\Thesis\AI_REG_SLR_Lib_Nova'
+pdf_path: ''G:\Other computers\My MacBook Pro\Thesis\SLR_Lib'
 gs_header_row_number: '3'
 gs_studies_sheet_name: Studies
 gs_studies_id_column_name: Covidence
 themes:
     purple:
         hex: '#c785da'
-        term: Sandbox
+        term: theme1
     pink:
         hex: '#fc5b89'
-        term: Challenges and Risks
+        term: theme2
     blue:
         hex: '#69aff1'
-        term: Stage One
+        term: theme3
     green:
         hex: '#7bc768'
-        term: Stage Two
+        term: theme4
     yellow:
         hex: '#fbcd5a'
-        term: Stage Three
+        term: theme5
 searches:
-    search_1: regulatory sandbox
-    search_2: regulatory AND sandbox
+    search_1: term1
+    search_2: term2
 sources:
     source_1: University Library
     source_2: Scopus
     source_3: Web of Science
+    source_4: source4
 ```
 
 ## Data Gathering
 
 ### studies.csv
 
+1. Exported from Covidence, Zotero, etc.
+2. The Columns of the Studies table will be created based on this file.
+3. Set `gs_studies_id_column_name` in confit.yaml (e.g. Covidence Number), it will be used as the ID of the study in google sheets.
 
 ### export.html file containing PDF utls
 
-
+1. Using Chrome browser, open the Covidence page with the list of studies.
+2. Right click on the page and choose "Save as" and choose "Webpage, HTML Only".
+3. The HTML file will be saved in the project folder.
 
 ## Synopsis
 
