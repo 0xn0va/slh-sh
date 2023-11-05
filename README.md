@@ -46,7 +46,12 @@ Manage:
 
 There are at least 17 steps to do a Systematic Literature Review (SLR) with a Google Sheets.
 
-slh-sh would automate the all the repetitive tasks, The only manual steps (12, 16, 17) would be, writing minimal one line command, reading the article, highlighting the texts and writing your paper.
+slh-sh would automate the all the repetitive tasks.
+
+The only manual steps (12, 16, 17) would be:
+- Writing a minimal one line command
+- Reading the article and highlighting the texts based on predefined Theme Color in Config File.
+- Writing your paper.
 
 1. Find the next study in the list on Covidence.
 2. Add new row to Google Sheet.
@@ -59,12 +64,12 @@ slh-sh would automate the all the repetitive tasks, The only manual steps (12, 1
 9. Find and copy keywords to Google Sheets.
 10. Copy the year to Google Sheets.
 11. Find and copy APA and DOI to Google Sheets.
-12. [bold]Open, scan, and read the article; find and highlight by colors based on the themes.[/bold]
+12. **Open, scan, and read the article; find and highlight by colors based on the themes.**
 13. Find and transfer highlighted texts to Google Sheets based on the themes (colors/fields).
 14. Copy the PDF file to the Google Drive folder.
 15. Make the Filename column on Google Sheets link to Google Drive.
-16. Mark or color the Inclusion column as included, excluded, or unknown.
-17. Write your Own thought column.
+16. **Mark or color the Inclusion column as included, excluded, or unknown.**
+17. **Write your Own thought column.**
 18. Take a breath.
 19. Repeat.
 
@@ -89,6 +94,8 @@ pip install slh-sh
 
 
 ## Tips and Tricks
+- Pause syncing on Google Drive while editing a PDF file.
+
 
 ### Google APP Script to add links to drive files
 
@@ -113,10 +120,7 @@ function linkToDriveFile() {
 ```
 
 
-- Pause syncing on Google Drive while editing a PDF file.
-
-
-## Made with
+## Thanks
 slh-sh would not be possible without these great projects:
 - [Python](https://www.python.org/)
 - [Typer](https://typer.tiangolo.com/)
