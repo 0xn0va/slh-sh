@@ -45,15 +45,15 @@ slh-sh --help
 
 There are at least 17 steps to do a Systematic Literature Review (SLR) with a Google Sheets.
 
-slh-sh would automate the all the repetitive tasks.
+slh-sh would automate all the repetitive tasks.
 
-The only manual steps (12, 16, 17) would be:
+The only manual steps (12, 16, 17) with slh-sh would be:
 
-- Writing a minimal one line command
+- Writing a minimal one line command, e.g. `slh-sh go pdf 120`
 - Reading the article and highlighting the texts based on provided Theme Color in Config File.
 - Writing your paper.
 
-Manual SLR steps with Google Sheets:
+Manual SLR steps with Google Sheets without using slh-sh:
 
 1. Find the next study in the list on Covidence.
 2. Add new row to Google Sheet.
