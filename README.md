@@ -8,7 +8,7 @@ SLR: Systematic Literature Review
 
 ```bash
 pip install slh-sh
-slh-sh init
+slh-sh self init
 slh-sh --help
 ```
 
@@ -97,7 +97,7 @@ pip install slh-sh
 
 **Run**
 
-1. Create a folder and copy default config file from below OR use `slh-sh init` to create a new project folder from default template or a questionaire.
+1. Create a folder and copy default config file from below OR use `slh-sh self init` to create a new project folder from default template or a questionaire.
 2. `slh-sh [Command] --help` - to see the help for a command.
 3. `slh-sh self list` - to see the available commands.
 
@@ -201,7 +201,7 @@ sources:
 
 ```bash
 # Initialize a new project folder
-slh-sh init
+slh-sh self init
 
 # Learn about slh-sh commands
 slh-sh --help
