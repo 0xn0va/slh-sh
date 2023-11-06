@@ -203,13 +203,13 @@ sources:
 # Initialize a new project folder
 slh-sh init
 
-# Install slh-sh
+# Learn about slh-sh commands
 slh-sh --help
 
 # See the help for a command
 slh-sh [Command] --help
 
-# See the available commands
+# See the list of available commands
 slh-sh self list
 
 # Import studies from CSV file to database
