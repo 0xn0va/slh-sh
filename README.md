@@ -1,10 +1,8 @@
 # tl;dr
 
-slh-sh ([slh.sh](http://slh.sh)) - A CLI tool in Python to automated repetitive tasks of a Systematic Literature Review project.
+slh-sh - [slh.sh](http://slh.sh)
 
-SLH: SLRs Little Helper
-
-SLR: Systematic Literature Review
+SRL's Little Helper (SLH) is an unopinionated CLI tool in Python to facilitate the workflow and automate repetitive tasks of a Systematic Literature Review project.
 
 ```bash
 pip install slh-sh
@@ -263,6 +261,10 @@ slh-sh go db
 slh-sh go pdf [ID (Covidence Number)]
 
 ```
+
+## Example of SLR's workflow with slh-sh
+
+TODO
 
 ## Tips and Tricks
 
