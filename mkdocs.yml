@@ -1,0 +1,51 @@
+site_name: slh.sh
+site_description: Systematic Literature Review's Little Helper
+site_url: https://slh.sh
+
+#   icon:
+#     repo: fontawesome/brands/github-alt
+#   logo:
+#   favicon: img/favicon.png
+
+repo_name: 0xn0va/slh-sh
+repo_url: https://github.com/0xn0va/slh-sh
+
+theme:
+  name: material
+  palette:
+
+    # Palette toggle for light mode
+    - media: "(prefers-color-scheme: light)"
+      primary: deep-purple
+      accent: indigo
+      scheme: default
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+
+    # Palette toggle for dark mode
+    - media: "(prefers-color-scheme: dark)"
+      primary: deep-purple
+      accent: indigo
+      scheme: slate
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+
+
+nav:
+  - slh-sh: index.md
+  - Features: features.md
+  - Tutorial:
+    - "Prerequisites": tutorial/prerequisites.md
+    - "Installation": tutorial/installation.md
+    - "Start a SLR project": tutorial/slr.md
+    - "Configuration file": tutorial/configuration.md
+    - "Import studies": tutorial/import.md
+    - "Metadata extraction": tutorial/metadata.md
+    - "PDF download": tutorial/download.md
+    - "Distribution extraction": tutorial/distribution.md
+    - "Sync with Google Sheets": tutorial/sync.md
+  - SLR workflow with SLH-SH: workflow.md
+  - Contribute: contribute.md
+  - Cite: cite.md
