@@ -48,7 +48,7 @@ def get_spreadsheet_by_url(gs):
         return spreadSheet
     except gspread.SpreadsheetNotFound:
         logger().warning(f"Spreadsheet {gs} not found!")
-        return False  # TODO: is it best practice to return False?
+        return "Spreadsheet {gs} not found!"
 
 
 def get_worksheet_by_name(gs, sheet):
@@ -67,7 +67,7 @@ def get_worksheet_by_name(gs, sheet):
         return ws
     except gspread.WorksheetNotFound:
         logger().warning(f"Worksheet {sheet} not found in Google Sheet!")
-        return False  # TODO: is it best practice to return False?
+        return "Worksheet {sheet} not found in Google Sheet!"
 
 
 def get_worksheet_headers_row_values(ws):

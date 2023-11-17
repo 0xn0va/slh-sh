@@ -2,6 +2,10 @@ import typer
 import sys
 import sqlite3 as sql
 
+# import sqlalchemy as sa
+
+# from sqlalchemy.inspection import inspect
+
 from rich import print
 from typing_extensions import Annotated
 
@@ -213,3 +217,71 @@ def config():
 # def diff(data: str):
 #     """ """
 #     print(f"Diff DB with Google Sheet: {data}...")
+
+
+@app.command()
+def fetch(
+    sheet: Annotated[str, typer.Argument(help="Name of the Sheet")] = "",
+    gs: Annotated[str, typer.Option(help="Google Sheet URL")] = get_conf("gs_url"),
+):
+    """Fetch data from Google Sheet to Database."""
+    print(f"Fetching Google Sheet to database...")
+
+    ws = get_worksheet_by_name(gs, sheet)
+    ws_data = ws.get_values()
+    ws_headers = ws_data[2]
+    ws_data = ws_data[3:]
+
+    # add underline to sheet name if two words
+    sheet = sheet.replace(" ", "_")
+    # add underline to ws_headers if two words
+    ws_headers = [header.replace(" ", "_") for header in ws_headers]
+    ws_headers = [header.replace("/", "_") for header in ws_headers]
+
+    # replace empty string with None in ws_data
+    ws_data = [["None" if cell == "" else cell for cell in row] for row in ws_data]
+
+    print(sheet)
+    print(ws_headers)
+
+    conn = sql.connect(get_conf("sqlite_db"))
+    curr = conn.cursor()
+
+    curr.execute(
+        f""" CREATE TABLE IF NOT EXISTS {sheet} ({', '.join([f'{header} TEXT' for header in ws_headers])});"""
+    )
+
+    conn.commit()
+
+    # insert ws_data into the new table created above
+    for row in ws_data:
+        print(row)
+        curr.execute(
+            f"INSERT INTO {sheet} ({', '.join(ws_headers)}) VALUES ({', '.join([f'?' for i in range(len(ws_headers))])})",
+            row,
+        )
+        conn.commit()
+
+    conn.close()
+
+    # dbs = get_db()
+    # dbs.begin()
+    # # create table if not exists with the ws_headers as columns with sqlalchemy
+    # dbs.execute(
+    #     f"""CREATE TABLE IF NOT EXISTS {sheet}
+    #         ({', '.join([f'{header} TEXT' for header in ws_headers])});"""
+    # )
+    # dbs.commit()
+
+    # print(f"new table created: {sheet}")
+
+    # # insert ws_data into the new table created above
+    # for row in ws_data:
+    #     dbs.execute(
+    #         f"INSERT INTO {sheet} ({', '.join(ws_headers)}) VALUES ({', '.join([f'{row}' for row in row])});"
+    #     )
+    #     dbs.commit()
+
+    # dbs.close()
+
+    print(f"Data from {sheet} added to corresponding database table!")
