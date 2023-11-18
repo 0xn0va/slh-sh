@@ -52,6 +52,9 @@ There are {len(os.listdir(get_conf("pdf_path")))} PDFs in {get_conf("pdf_path")}
                 f"SELECT citation, bibliography FROM studies WHERE covidence_id = {cov}"
             )
             db_citbib = curr.fetchone()
+
+            conn.close()
+
             result["citation"] = db_citbib[0]
             result["bibliography"] = db_citbib[1]
 

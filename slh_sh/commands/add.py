@@ -42,7 +42,6 @@ def csv(
         """
     )
 
-    # Open the CSV file
     with open(get_conf("csv_export"), "r") as f:
         reader = csvimport.reader(f)
         # Read the first line of the file to get the CSV headers
@@ -102,63 +101,7 @@ def csv(
         """
     )
 
-    # Close the CSV file and the SQLite database
     f.close()
     conn.commit()
     conn.close()
 
-
-# @app.command()
-# # add doi # fetches, dls if available and adds an study
-# def doi(
-#     doi: Annotated[str, typer.Argument(help="DOI - Not Implemented Yet")],
-# ):
-#     print(f"DOI {doi}...")
-
-
-# @app.command()
-# # add themes --cov --color
-# def themes(
-#     color: Annotated[str, typer.Option(help="Theme color - Not Implemented Yet")],
-# ):
-#     print(f"Themes {color}...")
-
-
-# @app.command()
-# # add annot --cov (updates the Studies based on cov number)
-# def annot(
-#     cov: Annotated[str, typer.Option(help="Covidence number - Not Implemented Yet")],
-# ):
-#     print(f"Annot {cov}...")
-
-
-# @app.command()
-# # add cit --cov (updates the Studies based on cov number)
-# def cit(
-#     cov: Annotated[str, typer.Option(help="Covidence number - Not Implemented Yet")],
-# ):
-#     print(f"Cit {cov}...")
-
-
-# @app.command()
-# # add sources --import csv/txt/json
-# def sources(
-#     source: Annotated[str, typer.Option(help="Source - Not Implemented Yet")],
-# ):
-#     print(f"Sources {source}...")
-
-
-# @app.command()
-# # add searches --import csv/txt/json
-# def searches(
-#     search: Annotated[str, typer.Option(help="Search - Not Implemented Yet")],
-# ):
-#     print(f"Searches {search}...")
-
-
-# @app.command()
-# # add status --cov --include/exclude/unknown
-# def status(
-#     cov: Annotated[str, typer.Option(help="Covidence number - Not Implemented Yet")],
-# ):
-#     print(f"Status {cov}...")
