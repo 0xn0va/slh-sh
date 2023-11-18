@@ -2,6 +2,10 @@ import typer
 import sys
 import sqlite3 as sql
 
+# import sqlalchemy as sa
+
+# from sqlalchemy.inspection import inspect
+
 from rich import print
 from typing_extensions import Annotated
 
@@ -213,3 +217,56 @@ def config():
 # def diff(data: str):
 #     """ """
 #     print(f"Diff DB with Google Sheet: {data}...")
+
+
+@app.command()
+def fetch(
+    sheet: Annotated[str, typer.Argument(help="Name of the Sheet e.g. 'Stage 1' or Stage_1")] = "",
+    dbtable: Annotated[
+        str,
+        typer.Argument(
+            help="Name of the Database Table, if empty the name will be used e.g Stage_One_Sheet"
+        ),
+    ] = "",
+    gs: Annotated[str, typer.Option(help="Google Sheet URL")] = get_conf("gs_url"),
+):
+    """Fetch data from Google Sheet to a new database table."""
+
+    print(f"Fetching Google Sheet to database...")
+
+    ws = get_worksheet_by_name(gs, sheet)
+    ws_data = ws.get_values()
+    ws_headers = ws_data[2]
+    ws_data = ws_data[3:]
+
+    if dbtable == "":
+        dbtable = sheet
+        sheet = sheet.replace(" ", "_")
+    elif dbtable != "":
+        dbtable = dbtable.replace(" ", "_")
+
+    ws_headers = [header.replace(" ", "_") for header in ws_headers]
+    ws_headers = [header.replace("/", "_") for header in ws_headers]
+
+    # replace empty string with None in ws_data
+    ws_data = [["None" if cell == "" else cell for cell in row] for row in ws_data]
+
+    conn = sql.connect(get_conf("sqlite_db"))
+    curr = conn.cursor()
+
+    curr.execute(
+        f""" CREATE TABLE IF NOT EXISTS {dbtable} ({', '.join([f'{header} TEXT' for header in ws_headers])});"""
+    )
+    conn.commit()
+
+    for row in ws_data:
+        print(row)
+        curr.execute(
+            f"INSERT INTO {dbtable} ({', '.join(ws_headers)}) VALUES ({', '.join([f'?' for i in range(len(ws_headers))])})",
+            row,
+        )
+        conn.commit()
+
+    conn.close()
+
+    print(f"Data from {dbtable} added to corresponding database table!")

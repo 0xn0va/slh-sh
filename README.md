@@ -2,7 +2,7 @@
 
 slh-sh - [slh.sh](http://slh.sh)
 
-SRL's Little Helper (SLH) is an unopinionated CLI tool in Python to facilitate the workflow and automate repetitive tasks of a Systematic Literature Review project.
+SRL's Little Helper (SLH) is an unopinionated CLI tool in Python that improves workflow efficiency by automating repetitive chores for Systematic Literature Review projects.
 
 ```bash
 pip install slh-sh
@@ -25,13 +25,14 @@ slh-sh --help
 
 **Sync**
 - Update the data in Google Sheets on spesific Row, Column, Cell from database or complete sync to new Worksheet.
+- Fetch and sync data from Google Sheets to new database table.
 
 **Review**
 - Open PDF files with default PDF viewer from CLI with its ID number - `slh-sh go pdf 436`
 - Highlight PDF files with defined "Theme" in Config file with specific color.
 
-**Fetch** (Under Development)
-- Fetch and format all related Highlighted text based on the Theme color.
+**Get**
+- Compile and format the data from database to a paper with citation.
 
 **Manage**
 - One project folder for config files, database, and PDF files.
@@ -85,7 +86,7 @@ Manual SLR steps with Google Sheets without using slh-sh:
 **Installation**
 
 1. Python 3.8 or higher.
-2. Favorite PDF viewer.
+2. Favorite PDF viewer. (e.g [Foxit Reader](https://www.foxit.com/pdf-reader/))
 3. SQLite database viewer. (e.g [sqlitebrowser](https://sqlitebrowser.org/dl/))
 4. Install slh-sh with pip.
 
@@ -247,6 +248,9 @@ slh-sh sync update --allsheet --apply
 
 # Sync specific data from database to Google Sheets Worksheet's Cell or Row
 slh-sh sync update --col "Keywords" --cov [Covidence Number] --apply
+
+# Sync specific Google Sheet to new database table
+slh-sh sync fetch 'Stage 1' Stage_1_Table
 
 # Open Google Drive folder in browser
 slh-sh go gd
