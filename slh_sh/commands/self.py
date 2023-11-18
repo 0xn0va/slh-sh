@@ -8,7 +8,7 @@ from slh_sh.utils.config import saveConfigFile
 
 # from slh_sh.utils.db import create_db
 
-slh_version: str = "0.1.6"
+slh_version: str = "0.1.7"
 
 app = typer.Typer()
 
@@ -68,7 +68,7 @@ def list():
                     - fetch     # Fetch and save data from Google Sheet to a new database table.
                     - config    # Iterate over Themes, Searches, and Sources in config.yaml and insert into database.
                 - get
-                    - info      # Prints basic infor about the project.
+                    - info      # Get info about a study and its Citation and Bibliography from a database table by ID.
                 - go
                     - gd        # Opens the Google Drive folder.
                     - gs        # Opens the Google Sheet.

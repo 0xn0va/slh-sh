@@ -20,6 +20,8 @@ def info(
     idcol: Annotated[str, typer.Option(help="ID column name")] = "covidence_id",
     copy: Annotated[bool, typer.Option(help="Copy to clipboard")] = False,
 ):
+    """Get info about a study and its Citation and Bibliography from a database table by ID."""
+
     if cov == "":
         for file_name in os.listdir(get_conf("pdf_path")):
             if not file_name.startswith("."):
