@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "slh-sh"
-version = "0.1.6"
+version = "0.1.7"
 description = ""
 authors = ["Nova Sky <2989791+0xnovasky@users.noreply.github.com>"]
 readme = "README.md"
@@ -22,6 +22,7 @@ pymupdf = "^1.23.3"
 scholarly = "^1.7.11"
 sqlalchemy = "^2.0.21"
 pydantic = "^2.4.0"
+pyperclip = "^1.8.2"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.4.2"

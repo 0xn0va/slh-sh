@@ -209,16 +209,6 @@ def config():
 
     conn.close()
 
-
-# @app.command()
-# # shows differencess and missing fields
-# # https://www.geeksforgeeks.org/pandas-find-the-difference-between-two-dataframes/
-# # https://datascientyst.com/compare-two-pandas-dataframes-get-differences/
-# def diff(data: str):
-#     """ """
-#     print(f"Diff DB with Google Sheet: {data}...")
-
-
 @app.command()
 def fetch(
     sheet: Annotated[str, typer.Argument(help="Name of the Sheet e.g. 'Stage 1' or Stage_1")] = "",

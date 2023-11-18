@@ -31,7 +31,7 @@ slh-sh --help
 - Open PDF files with default PDF viewer from CLI with its ID number - `slh-sh go pdf 436`
 - Highlight PDF files with defined "Theme" in Config file with specific color.
 
-**Get**
+**Get info**
 - Compile and format the data from database to a paper with citation.
 
 **Manage**
@@ -237,9 +237,6 @@ slh-sh extract dist [Term] --all --db
 # Sync Distribution table from database to Google Sheets Worksheet
 slh-sh extract dist [Term] --cov [Covidence Number] --wsdsheet
 
-# Extract Annotatoins from PDF files to Annotations table in the database
-TODO!
-
 # Sync the config file to database
 slh-sh sync config
 
@@ -251,6 +248,9 @@ slh-sh sync update --col "Keywords" --cov [Covidence Number] --apply
 
 # Sync specific Google Sheet to new database table
 slh-sh sync fetch 'Stage 1' Stage_1_Table
+
+# Get info about a study and its Citation and Bibliography from a database table by ID.
+slh-sh get info 5 --table Stage_1 --idcol Covidence --copy
 
 # Open Google Drive folder in browser
 slh-sh go gd
