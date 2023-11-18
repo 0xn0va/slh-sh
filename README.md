@@ -262,7 +262,10 @@ slh-sh go gs
 slh-sh go db
 
 # Open PDF file with default PDF viewer
-slh-sh go pdf [ID (Covidence Number)]
+slh-sh go pdf [ID e.g. Covidence Number]
+
+# Open DOI in browser
+slh-sh go doi [ID e.g. Covidence Number]
 
 ```
 

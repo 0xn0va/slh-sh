@@ -1,5 +1,6 @@
 import typer
 import webbrowser
+import sqlite3 as sql
 
 from pathlib import Path
 from rich import print
@@ -74,3 +75,24 @@ def db(
         print(f"SQLite database not found")
         typer.Exit()
     webbrowser.open(sql_path.as_uri())
+
+
+@app.command()
+def doi(
+    id: Annotated[
+        str, typer.Argument(help="ID of the study e.g Covidence Number")
+    ] = "covidence_id",
+):
+    """Opens the DOI of a study by ID in browser."""
+
+    conn = sql.connect(get_conf("sqlite_db"))
+    curr = conn.cursor()
+    curr.execute(f"SELECT doi FROM studies WHERE covidence_id = {id}")
+    doi = curr.fetchone()
+    conn.close()
+    if doi == None:
+        print(f"DOI with the ID: {id} not found in database table: studies!")
+    else:
+        doi = doi[0]
+        print(f"Opening DOI: {doi}...")
+        webbrowser.open(f"https://doi.org/{doi}")
