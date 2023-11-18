@@ -8,7 +8,7 @@ from slh_sh.utils.config import saveConfigFile
 
 # from slh_sh.utils.db import create_db
 
-slh_version: str = "0.1.7"
+slh_version: str = "0.1.8"
 
 app = typer.Typer()
 
@@ -74,6 +74,7 @@ def list():
                     - gs        # Opens the Google Sheet.
                     - pdf       # Opens a PDF file in the default PDF reader.
                     - db        # Opens the SQLite database file in the default database viewer.
+                    - doi       # Opens the DOI URL in the default browser.
         """
     )
 

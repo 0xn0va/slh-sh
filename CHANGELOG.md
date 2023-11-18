@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.8] - 2023-11-18
+- `slh-sh go doi [id]` command to open doi in browser, example: `slh-sh go doi 91`
+
 ## [0.1.7] - 2023-11-18
 
 ### Added
