@@ -8,7 +8,7 @@ from slh_sh.utils.config import saveConfigFile
 
 # from slh_sh.utils.db import create_db
 
-slh_version: str = "0.1.5"
+slh_version: str = "0.1.6"
 
 app = typer.Typer()
 
@@ -65,6 +65,7 @@ def list():
                     - dist      # Extracts the distribution of the term from the pdf file and updates the distribution table in the database.
                 - sync
                     - update    # Update the Google Sheets with data from Database.
+                    - fetch     # Fetch and save data from Google Sheet to a new database table.
                     - config    # Iterate over Themes, Searches, and Sources in config.yaml and insert into database.
                 - get
                     - info      # Prints basic infor about the project.
@@ -109,11 +110,13 @@ def init(config: bool = typer.Option(False, help="Only create config file")):
 
         Good day researcher! :wave:
 
-        Welcome to slh :space_invader:
+        Welcome to slh-sh :space_invader:
 
         It stands for SLRs Little Helper
 
         A CLI tool to help you with your Systematic Literature Review. :books:
+
+        Visit https://slh.sh for more info.
 
         """
     )

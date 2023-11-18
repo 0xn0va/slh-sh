@@ -30,7 +30,7 @@ def gs_auth():
         return gc
     except gspread.SpreadsheetNotFound:
         logger().warning(f"Spreadsheet authentication failed!")
-        return False  # TODO: is it best practice to return False?
+        return "Spreadsheet authentication failed!"
 
 
 def get_spreadsheet_by_url(gs):

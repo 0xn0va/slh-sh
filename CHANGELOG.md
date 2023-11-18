@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.6] - 2023-11-18
+
+### Added
+- `slh-sh sync fetch` command to fetch and save data from Google Sheet to a new database table, example: `slh-sh sync fetch 'Stage 1' Stage_1_Table`
+
+### Changed
+- Code cleanup
+
 ## [0.1.5] - 2023-11-05
 
 ### Changed
