@@ -75,7 +75,7 @@ def extract_cit(db=False):
             citation = f"({authorsName}, {row[2]})"
 
             if db:
-                dbs.query(Study).filter(Study.covidence_id == fileName[0]).update(
+                dbs.query(Study).filter(Study.Covidence == fileName[0]).update(
                     {Study.citation: citation}
                 )
                 dbs.commit()
@@ -110,7 +110,7 @@ def extract_bib(csv, db=False):
 
     for row in db_res:
         bib = {
-            "covidence_number": row.covidence_id,
+            "covidence_number": row.Covidence,
             "author": row.authors,
             "year": row.published_year,
             "title": row.title,
@@ -124,10 +124,10 @@ def extract_bib(csv, db=False):
 
     for bib in bibs:
         bibliography: str = f"{bib['author']} ({bib['year']}). {bib['title']}. {bib['journal']} {bib['volume']}({bib['issue']}), {bib['pages']}."
-        cov: str = f"{bib['covidence_number']}"
+        id: str = f"{bib['covidence_number']}"
 
         if db:
-            dbs.query(Study).filter(Study.covidence_id == cov).update(
+            dbs.query(Study).filter(Study.Covidence == id).update(
                 {Study.bibliography: bibliography}
             )
             dbs.commit()
@@ -229,7 +229,7 @@ def extract_filename(csv, rename=False, db=False):
 
         if db:
             dbs = get_db()
-            dbs.query(Study).filter(Study.covidence_id == covidence_number).update(
+            dbs.query(Study).filter(Study.Covidence == covidence_number).update(
                 {Study.filename: file_name}
             )
             dbs.commit()
@@ -254,11 +254,11 @@ def extract_filename(csv, rename=False, db=False):
 ##
 
 
-def extract_keywords(cov, pdf_path, db=False):
+def extract_keywords(id, pdf_path, db=False):
     """Extracts the keywords from the pdf file and updates the keywords column in the studies table
 
     Args:
-        cov (int): Covidence number
+        id (int): ID, e.g. Covidence number
         pdf_path (path): Path to the pdf file
         db (bool, optional): Save to database? Defaults to False.
 
@@ -275,7 +275,7 @@ def extract_keywords(cov, pdf_path, db=False):
     all_keywords = []
     if length == 0:
         print(f"Keywords not found for {pdf_path}")
-        all_keywords.append(f"{cov} None")
+        all_keywords.append(f"{id} None")
     elif length >= 1:
         keywords = (
             matches[0]
@@ -286,11 +286,11 @@ def extract_keywords(cov, pdf_path, db=False):
             .replace("KEYWORDS", "")
             .strip()
         )
-        all_keywords.append(f"{cov} {keywords}")
-        print(cov, keywords)
+        all_keywords.append(f"{id} {keywords}")
+        print(id, keywords)
         if db:
             dbs = get_db()
-            dbs.query(Study).filter(Study.covidence_id == cov).update(
+            dbs.query(Study).filter(Study.Covidence == id).update(
                 {Study.keywords: keywords}
             )
             dbs.commit()
@@ -304,11 +304,11 @@ def extract_keywords(cov, pdf_path, db=False):
 ##
 
 
-def extract_annots(cov: int, color: str, pdf_path: str, db: bool = False):
+def extract_annots(id: int, color: str, pdf_path: str, db: bool = False):
     """Extracts the annotations from the pdf file and updates the annotations table in the database
 
     Args:
-        cov (int): Covidence number
+        id (int): ID, e.g. Covidence number
         color (str): Color of the annotations to extract
         pdf_path (str): Path to the pdf file
         db (bool, optional): Defaults to False
@@ -348,7 +348,7 @@ def extract_annots(cov: int, color: str, pdf_path: str, db: bool = False):
                                 total_count += 1
                                 count += 1
                                 item = {
-                                    "covidence_number": cov,
+                                    "ID": id,
                                     "count": count,
                                     "searched_color": color,
                                     "page_number": page_number,
@@ -368,7 +368,7 @@ def extract_annots(cov: int, color: str, pdf_path: str, db: bool = False):
                             total_count += 1
                             count += 1
                             item = {
-                                "covidence_number": cov,
+                                "ID": id,
                                 "count": count,
                                 "page_number": page_number,
                                 "annot_rgb_color": annot_rgb_fixed,
@@ -383,7 +383,7 @@ def extract_annots(cov: int, color: str, pdf_path: str, db: bool = False):
             for i in return_list:
                 dbs.add(
                     Annotation(
-                        studies_id=cov,
+                        studies_id=id,
                         theme_id=theme_id,
                         count=i["count"],
                         page_number=i["page_number"],
@@ -403,13 +403,13 @@ def extract_annots(cov: int, color: str, pdf_path: str, db: bool = False):
 ##
 
 
-def extract_dist(pdf_path: str, term: str, cov: str, db=False):
+def extract_dist(pdf_path: str, term: str, id: str, db=False):
     """Extracts the distribution of the term from the pdf file and updates the distribution table in the database
 
     Args:
         pdf_path (path): The full path to the pdf file
         term (str): The term to search for in the pdf file
-        cov (int): Internal Study ID from the database e.g. Covidence number
+        id (int): Internal Study ID from the database e.g. Covidence number
         db (bool, optional): Save to the database? - Defaults to False.
 
     Returns:
@@ -429,11 +429,11 @@ def extract_dist(pdf_path: str, term: str, cov: str, db=False):
                         continue
                     else:
                         page_number = page.number + 1
-                        # get citation from the database for cov
+                        # get citation from the database for id
                         dbs = get_db()
                         citation = (
                             dbs.query(Study)
-                            .filter(Study.covidence_id == cov)
+                            .filter(Study.Covidence == id)
                             .first()
                             .citation
                         )
@@ -441,7 +441,7 @@ def extract_dist(pdf_path: str, term: str, cov: str, db=False):
                         total_count += 1
                         count += 1
                         item: dict = {
-                            "studies_id": cov,
+                            "studies_id": id,
                             "count": count,
                             "page_number": page_number,
                             "term": term,
@@ -452,10 +452,10 @@ def extract_dist(pdf_path: str, term: str, cov: str, db=False):
     if db:
         dbs = get_db()
         dbs.begin()
-        dbs.query(Study).filter(Study.covidence_id == cov).update(
+        dbs.query(Study).filter(Study.Covidence == id).update(
             {Study.total_distribution: total_count}
         )
-        study_id = dbs.query(Study).filter(Study.covidence_id == cov).first().id
+        study_id = dbs.query(Study).filter(Study.Covidence == id).first().id
         theme_id = dbs.query(Theme).filter(Theme.term == term).first().id
 
         for i in return_list:
@@ -486,10 +486,10 @@ def extract_total_dist_sheet_sync():
         bool: True if updated successfully, False if not
     """
     gs = get_conf("gs_url")
-    ws = get_worksheet_by_name(gs, get_conf("gs_studies_sheet_name"))
+    ws = get_worksheet_by_name(gs, get_conf("default_studies"))
     headers_row_values = get_worksheet_headers_row_values(ws)
     id_col_values = get_worksheet_id_col_index_values(
-        ws, get_conf("gs_studies_id_column_name")
+        ws, get_conf("default_id")
     )
     updating_col_index_header = get_worksheet_updating_col_index_header(
         headers_row_values, "Distribution"
@@ -498,12 +498,12 @@ def extract_total_dist_sheet_sync():
     rows = dbs.query(Study).all()
     for row in rows:
         # update distribution column in google sheet from total_distribution column in database
-        cov = row.covidence_id
+        id = row.Covidence
         td = row.total_distribution  # db result
         try:
-            # update sheet cell with td value where covidence number matches cov
+            # update sheet cell with td value where covidence number matches id
             res = update_sheet_cell(
-                ws, id_col_values, cov, updating_col_index_header, td
+                ws, id_col_values, id, updating_col_index_header, td
             )
             time.sleep(3)
         except:
@@ -514,7 +514,7 @@ def extract_total_dist_sheet_sync():
     return res
 
 
-def extract_dist_ws_sheet_sync(cov: str):
+def extract_dist_ws_sheet_sync(id: str):
     """Extracts the distribution from the database and updates the Distribution Worksheet in the Google Sheet
 
     Returns:
@@ -525,13 +525,13 @@ def extract_dist_ws_sheet_sync(cov: str):
     sheet = get_spreadsheet_by_url(get_conf("gs_url"))
     new_ws = create_new_worksheet(sheet, new_ws_name)
     dbs = get_db()
-    if cov == "":
+    if id == "":
         dist_rows = dbs.query(Distribution).all()
     else:
-        study_cov = dbs.query(Study).filter(Study.covidence_id == cov).first()
+        study_id = dbs.query(Study).filter(Study.Covidence == id).first()
         dist_rows = (
             dbs.query(Distribution)
-            .filter(Distribution.studies_id == study_cov.id)
+            .filter(Distribution.studies_id == study_id.id)
             .all()
         )
     # dist_rows = dbs.query(Distribution).all()
@@ -541,7 +541,7 @@ def extract_dist_ws_sheet_sync(cov: str):
                 "covidence_number": dbs.query(Study)
                 .filter(Study.id == dist_row.studies_id)
                 .first()
-                .covidence_id,
+                .Covidence,
                 "page_number": str(dist_row.page_number),
                 "text": dist_row.text,
                 "term": dist_row.term,
@@ -565,17 +565,17 @@ def extract_dist_ws_sheet_sync(cov: str):
         by=["covidence_number", "page_number"], ascending=True
     )
     dist_rows_df = dist_rows_df.reset_index(drop=True)
-    # build a list for each cov where text has same page number, add text to list
-    dist_cov_list = []
-    for cov in dist_rows_df["covidence_number"].unique():
-        dist_cov_list.append(
-            dist_rows_df.loc[dist_rows_df["covidence_number"] == cov].values.tolist()
+    # build a list for each id where text has same page number, add text to list
+    dist_id_list = []
+    for id in dist_rows_df["covidence_number"].unique():
+        dist_id_list.append(
+            dist_rows_df.loc[dist_rows_df["covidence_number"] == id].values.tolist()
         )
     # append dist_values to new_ws
     dist_values = dist_rows_df.values.tolist()
     for dist_value in dist_values:
         # covidence_number
-        cov = dist_value[0]
+        id = dist_value[0]
         # Searched term
         term = dist_value[3]
         # Total number of blocks the searched term found in the page
@@ -591,7 +591,7 @@ def extract_dist_ws_sheet_sync(cov: str):
         try:
             res = new_ws.append_row(
                 [
-                    cov,
+                    id,
                     term,
                     total_occurence,
                     occurernce,
@@ -603,11 +603,11 @@ def extract_dist_ws_sheet_sync(cov: str):
             )
             logger().info(f"Added to worksheet")
             # get the url for the first cell of the new appended row
-            # cell = new_ws.find(cov)
+            # cell = new_ws.find(id)
             # print(res)
             # cell =  res
             # cell_url = cell.url
-            # res = total_dist_linker(cov, cell_url)
+            # res = total_dist_linker(id, cell_url)
             time.sleep(2)
         except:
             logger().warning(
@@ -617,13 +617,13 @@ def extract_dist_ws_sheet_sync(cov: str):
     return True
 
 
-# def total_dist_linker(cov, dist_sheet_link):
+# def total_dist_linker(id, dist_sheet_link):
 #     # get the studies worksheet from google sheets
 #     gs = get_conf("gs_url")
-#     ws = get_worksheet_by_name(gs, get_conf("gs_studies_sheet_name"))
-#     # get the total distribution cell from the studies worksheet for the row that Covidence number matches cov
+#     ws = get_worksheet_by_name(gs, get_conf("default_studies"))
+#     # get the total distribution cell from the studies worksheet for the row that Covidence number matches id
 #     id_col_values = get_worksheet_id_col_index_values(
-#         ws, get_conf("gs_studies_id_column_name")
+#         ws, get_conf("default_id")
 #     )
 #     updating_col_index_header = get_worksheet_updating_col_index_header(
 #         get_worksheet_headers_row_values(ws), "Distribution"
@@ -631,9 +631,9 @@ def extract_dist_ws_sheet_sync(cov: str):
 #     print(id_col_values)
 #     print(updating_col_index_header)
 
-#     # update the total distribution cell for the row that Covidence number matches cov with the dist_sheet_link hyperlink
+#     # update the total distribution cell for the row that Covidence number matches id with the dist_sheet_link hyperlink
 #     res = update_sheet_cell(
-#         ws, id_col_values, cov, updating_col_index_header, dist_sheet_link
+#         ws, id_col_values, id, updating_col_index_header, dist_sheet_link
 #     )
 
 #     return res

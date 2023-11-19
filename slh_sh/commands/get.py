@@ -15,14 +15,14 @@ app = typer.Typer()
 
 @app.command()
 def info(
-    cov: Annotated[str, typer.Argument(help="Covidence number")] = "",
-    table: Annotated[str, typer.Option(help="Table name")] = "studies",
-    idcol: Annotated[str, typer.Option(help="ID column name")] = "covidence_id",
+    id: Annotated[str, typer.Argument(help="ID, e.g. Covidence number")] = "",
+    table: Annotated[str, typer.Option(help="Table name")] = get_conf("default_studies"),
+    idcol: Annotated[str, typer.Option(help="ID column name")] = get_conf("default_id"),
     copy: Annotated[bool, typer.Option(help="Copy to clipboard")] = False,
 ):
     """Get info about a study and its Citation and Bibliography from a database table by ID."""
 
-    if cov == "":
+    if id == "":
         for file_name in os.listdir(get_conf("pdf_path")):
             if not file_name.startswith("."):
                 print(file_name)
@@ -37,19 +37,18 @@ There are {len(os.listdir(get_conf("pdf_path")))} PDFs in {get_conf("pdf_path")}
         conn = sql.connect(get_conf("sqlite_db"))
         curr = conn.cursor()
 
-        curr.execute(f"SELECT * FROM {table} WHERE {idcol} = {cov}")
+        curr.execute(f"SELECT * FROM {table} WHERE {idcol} = {id}")
         db_res = curr.fetchone()
         if db_res == None:
-            print(f"Study with the ID: {cov} not found in database table: {table}!")
+            print(f"Study with the ID: {id} not found in database table: {table}!")
         else:
             result = {}
 
             for i, col in enumerate(db_res):
                 result[curr.description[i][0]] = col
 
-            # TODO: unify id column names in config.yaml and in code (covidence_id vs covidence) to ID
             curr.execute(
-                f"SELECT citation, bibliography FROM studies WHERE covidence_id = {cov}"
+                f"SELECT citation, bibliography FROM studies WHERE {get_conf('default_id')} = {id}"
             )
             db_citbib = curr.fetchone()
 

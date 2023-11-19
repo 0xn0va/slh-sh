@@ -15,7 +15,7 @@ class StudySchema(BaseModel):
     accession_number: str
     doi: str
     ref: str
-    covidence_id: int
+    Covidence: int
     study: str
     notes: str
     tags: str
