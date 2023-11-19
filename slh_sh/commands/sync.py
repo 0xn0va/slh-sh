@@ -31,16 +31,16 @@ app = typer.Typer()
 @app.command()
 def update(
     sheetcol: Annotated[str, typer.Option(help="Column name in Google Sheet")] = "",
-    # TODO: handle range when passed by user as cov, Use a number, a range e.g. 1-20 or multiple numbers e.g 1,30,2
-    cov: Annotated[str, typer.Option(help="Covidence number as ID")] = "",
+    # TODO: handle range when passed by user as id, Use a number, a range e.g. 1-20 or multiple numbers e.g 1,30,2
+    id: Annotated[str, typer.Option(help="ID, e.g. Covidence number")] = "",
     sheet: Annotated[str, typer.Option(help="Name of the Sheet")] = get_conf(
-        "gs_studies_sheet_name"
+        "default_studies"
     ),
     gs: Annotated[str, typer.Option(help="Google Sheet URL")] = get_conf("gs_url"),
     idcol: Annotated[
         str,
-        typer.Option(help="Column name that considered as ID e.g 'Covidence #'"),
-    ] = get_conf("gs_studies_id_column_name"),
+        typer.Option(help="Column name that considered as ID e.g 'Covidence Number'"),
+    ] = get_conf("default_id"),
     apply: Annotated[bool, typer.Option(help="Apply changes to Google Sheet")] = False,
     allcol: Annotated[bool, typer.Option(help="Update all data in column")] = False,
     alltable: Annotated[
@@ -50,43 +50,43 @@ def update(
     """
     Update Google Sheet with data from Database.
 
-    --cov <covidence_id> --gs <sheet_name> --col <column_name>
+    --id <default_id> --gs <sheet_name> --col <column_name>
     """
     if alltable == "" and apply:
         ws = get_worksheet_by_name(gs, sheet)
-    if cov != "" and sheetcol != "" and "," not in cov and "-" not in cov:
+    if id != "" and sheetcol != "" and "," not in id and "-" not in id:
         # get Google Sheet's Worksheet's id column index values
         headers_row_values = get_worksheet_headers_row_values(ws)
         id_col_values = get_worksheet_id_col_index_values(ws, idcol)
         updating_col_index_header = get_worksheet_updating_col_index_header(
             headers_row_values, sheetcol
         )
-        # curr.execute(f"SELECT {sheetcol} FROM studies WHERE Covidence = '{cov}'")
+        # curr.execute(f"SELECT {sheetcol} FROM studies WHERE Covidence = '{id}'")
         # db_res: str = curr.fetchone()
         dbs = get_db()
         # select [idcol = covidence] from database where idcol is id_col_value
         db_res = dbs.query(Study).filter_by(idcol=id_col_values).first()
         if db_res == None:
-            print(f"Study {cov} not found in database!")
+            print(f"Study {id} not found in database!")
             sys.exit()
         elif db_res[0] != None:
             if apply:
                 update_sheet_cell(
-                    ws, id_col_values, cov, updating_col_index_header, db_res[0]
+                    ws, id_col_values, id, updating_col_index_header, db_res[0]
                 )
                 print(
                     """
             :tada: Sync finished successfully from database to Google Sheet:
             Column: {col}
             Sheet: {sheet}
-            Study: {cov}
+            Study: {id}
             Google Sheet {gs}...
                     """
                 )
             else:
-                print(f"Would update {cov} with '{db_res[0]}'")
+                print(f"Would update {id} with '{db_res[0]}'")
         else:
-            print(f"Empty {sheetcol} for {cov}, skipping...")
+            print(f"Empty {sheetcol} for {id}, skipping...")
     elif allcol and sheetcol != "":
         res = sync_studies_column_sheet(gs, idcol, sheetcol)
         print(
@@ -119,17 +119,17 @@ def update(
                 """
             )
     else:
-        print(f"Invalid covidence id {cov}, {sheetcol} or table name {alltable}!")
-        # if cov contains , or - then it's a range
-        # if "," in cov:
+        print(f"Invalid covidence id {id}, {sheetcol} or table name {alltable}!")
+        # if id contains , or - then it's a range
+        # if "," in id:
         #     print("Multiple detected!")
-        #     cov = cov.split(",")
-        #     print(cov)
-        #     # check if any value in cov exists in id_col_values
+        #     id = id.split(",")
+        #     print(id)
+        #     # check if any value in id exists in id_col_values
         #     if apply:
         #         for id_col_value in id_col_values[3:]:
-        #             if cov in id_col_value:
-        #                 print(cov)
+        #             if id in id_col_value:
+        #                 print(id)
         #                 update_sheet_cell(
         #                     ws, id_col_values, id_col_value, updating_col_index_header, db_res[0])
         #                 # sleep for 3 seconds to avoid Google API rate limit
@@ -138,10 +138,10 @@ def update(
         #                 print(f"Study {id_col_value} not found in database!")
         #                 continue
         #     sys.exit()
-        # elif "-" in cov:
+        # elif "-" in id:
         #     print("Range detected!")
-        #     cov = cov.split("-")
-        #     print(cov)
+        #     id = id.split("-")
+        #     print(id)
         #     sys.exit()
 
 
@@ -166,7 +166,7 @@ def config():
             # insert theme into database
             hex = get_conf("themes")[theme]["hex"]
             term = get_conf("themes")[theme]["term"]
-            # TODO: add study (cov) and totalCount columns
+            # TODO: add study (id) and totalCount columns
             curr.execute(
                 f"INSERT INTO themes (color, hex, term) VALUES ('{theme}', '{hex}', '{term}');"
             )

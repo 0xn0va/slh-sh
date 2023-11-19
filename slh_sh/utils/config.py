@@ -33,10 +33,10 @@ def saveConfigFile(
         "pdf_path": "studies_pdf",
         # Number of the header row in Google Sheet
         "gs_header_row_number": "3",
-        # Name of the Studies sheet in Google Sheet
-        "gs_studies_sheet_name": "Studies",
-        # Name of the ID column in Google Sheet
-        "gs_studies_id_column_name": "Covidence",
+        # Name of the Studies sheet in Google Sheet and name of the default table in SQLite Database
+        "default_studies": "Studies",
+        # Name of the default ID column in Google Sheet and SQLite Database
+        "default_id": "Covidence",
         # Themes, Searches, and Sources will be added to database with sync yaml command
         # Themes (colors) for the annotations
         "themes": {
@@ -99,8 +99,8 @@ def saveConfigFile(
 # sqlite_db - Name of the default SQLite Database file
 # pdf_path - Full path of the PDF folder e.g /Users/Sara/Downloads/uni/Thesis/SLR_Thesis_Lib
 # gs_header_row_number - Number of the header row in Google Sheet
-# gs_studies_sheet_name - Name of the Studies sheet in Google Sheet
-# gs_studies_id_column_name - Name of the ID column in Google Sheet
+# default_studies - Name of the Studies sheet in Google Sheet and name of the default table in SQLite Database
+# default_id - Name of the default ID column in Google Sheet and SQLite Database
 # themes - Themes (colors) for the annotations
 # searches - Searches (keywords) for the studies
 # sources - Sources (where the study is found)

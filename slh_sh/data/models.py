@@ -26,7 +26,7 @@ class Study(BaseModel):
     accession_number: Mapped[str] = mapped_column(index=True, nullable=True)
     doi: Mapped[str] = mapped_column(index=True, nullable=True)
     ref: Mapped[str] = mapped_column(index=True, nullable=True)
-    covidence_id: Mapped[int] = mapped_column(index=True, nullable=True)
+    Covidence: Mapped[int] = mapped_column(index=True, nullable=True)
     study: Mapped[str] = mapped_column(index=True, nullable=True)
     notes: Mapped[str] = mapped_column(index=True, nullable=True)
     tags: Mapped[str] = mapped_column(index=True, nullable=True)

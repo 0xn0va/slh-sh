@@ -30,13 +30,13 @@ def gs(
 @app.command()
 # https://www.foxit.com/pdf-reader/
 def pdf(
-    cov: Annotated[str, typer.Argument(help="Covidence number")] = "",
+    id: Annotated[str, typer.Argument(help="ID, e.g. Covidence number")] = "",
     # page: Annotated[str, typer.Option(help="Page number")] = "",
 ):
-    pdf_path = get_file_path(cov)
+    pdf_path = get_file_path(id)
     print(pdf_path)
     if pdf_path is None:
-        print(f"PDF not found for {cov}")
+        print(f"PDF not found for {id}")
         typer.Exit()
     else:
         typer.launch(pdf_path)
@@ -45,7 +45,7 @@ def pdf(
     ##
     # if page != "":
     #     # open the pdf file with the page number with local pdf reader
-    #     # open_pdf(cov, page)
+    #     # open_pdf(id, page)
     #     print(pdf_path)
     #     # check if os is windows
     #     if os.name == "nt":
@@ -81,13 +81,13 @@ def db(
 def doi(
     id: Annotated[
         str, typer.Argument(help="ID of the study e.g Covidence Number")
-    ] = "covidence_id",
+    ] = get_conf("default_id"),
 ):
     """Opens the DOI of a study by ID in browser."""
 
     conn = sql.connect(get_conf("sqlite_db"))
     curr = conn.cursor()
-    curr.execute(f"SELECT doi FROM studies WHERE covidence_id = {id}")
+    curr.execute(f"SELECT doi FROM studies WHERE {get_conf('default_id')} = {id}")
     doi = curr.fetchone()
     conn.close()
     if doi == None:

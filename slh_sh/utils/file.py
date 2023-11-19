@@ -43,29 +43,29 @@ def get_pdf_dir() -> str:
     return Path.cwd() / get_conf("pdf_path")
 
 
-def get_file_path(cov):
+def get_file_path(id):
     """Return the file path for the given covidence number.
 
     Args:
-        cov: ID column of the study specified in the config file and exists in the file name.
+        id: ID column of the study specified in the config file and exists in the file name.
     """
     pdf_dir = get_pdf_dir()
     pdf_path = None
-    pdf_cov = None
+    pdf_id = None
 
     for file_name in os.listdir(pdf_dir):
-        pdf_cov: str = file_name.split("_")[0].replace("#", "")
-        if pdf_cov == str(cov):
+        pdf_id: str = file_name.split("_")[0].replace("#", "")
+        if pdf_id == str(id):
             pdf_path = os.path.join(pdf_dir, file_name)
 
     return pdf_path
 
 
-def file_name_generator(covidence_number: str, authors: str, year: str) -> list[str]:
+def file_name_generator(id: str, authors: str, year: str) -> list[str]:
     """Generates a file name for the given covidence number, authors and year.
 
     Args:
-        covidence_number (str): ID column of the study specified in the config file and exists in the file name.
+        id (str): ID column of the study specified in the config file and exists in the file name e.g. Covidence Number.
         authors (str): Authors column
         year (str): Publication year column
 
@@ -74,16 +74,16 @@ def file_name_generator(covidence_number: str, authors: str, year: str) -> list[
     """
     if ";" not in authors:
         last_name: str = authors.split(",")[0].strip()
-        name: str = f"{covidence_number}_{last_name}_{year}"
+        name: str = f"{id}_{last_name}_{year}"
         return name
     elif authors.count(";") == 1:
         last_name_1: str = authors.split(";")[0].split(",")[0].strip()
         last_name_2: str = authors.split(";")[1].split(",")[0].strip()
-        name: str = f"{covidence_number}_{last_name_1}_{last_name_2}_{year}"
+        name: str = f"{id}_{last_name_1}_{last_name_2}_{year}"
         return name
     elif authors.count(";") > 1:
         last_name: str = authors.split(";")[0].split(",")[0].strip()
-        name = f"{covidence_number}_{last_name}_et_al_{year}"
+        name = f"{id}_{last_name}_et_al_{year}"
         return name
     else:
         return None

@@ -52,10 +52,10 @@ def csv(
         conn = sql.connect(get_conf("sqlite_db"))
         curr = conn.cursor()
 
-        # check if gs_studies_id_column_name is not empty in config.yaml
-        if get_conf("gs_studies_id_column_name") == "":
+        # check if default_id is not empty in config.yaml
+        if get_conf("default_id") == "":
             print(
-                "gs_studies_id_column_name is empty in config.yaml incremental number will be used as id."
+                "default_id is empty in config.yaml incremental number will be used as id."
             )
             # Create a new table in the SQLite database with the same columns as the CSV file headers and add an id column
             curr.execute(
@@ -80,7 +80,7 @@ def csv(
             # check if the study is already in the database based on the covidence number as id if not insert it
             for row in rows:
                 curr.execute(
-                    f"SELECT * FROM studies WHERE covidence_id = ?", (row[12],)
+                    f"SELECT * FROM studies WHERE ? = ?", (get_conf("default_id"), row[12],)
                 )
                 if len(curr.fetchall()) > 0:
                     print(

@@ -173,7 +173,7 @@ def filename(
 
 @app.command()
 def keywords(
-    cov: Annotated[str, typer.Option(help="Covidence number to extract keywords")] = "",
+    id: Annotated[str, typer.Option(help="ID e.g. Covidence number to extract keywords")] = "",
     all: Annotated[
         bool,
         typer.Option(help="Extract keywords from all PDFs in pdf_path folder"),
@@ -181,29 +181,29 @@ def keywords(
     db: Annotated[bool, typer.Option(help="SQLite database file")] = False,
 ):
     """Extracts the keywords from the PDFs"""
-    print(f"Keywords {cov}...")
+    print(f"Keywords {id}...")
 
     pdf_dir = get_pdf_dir()
     pdf_path = None
 
     if all:
         for file_name in os.listdir(pdf_dir):
-            cov = file_name.split("_")[0].remove("#")
-            pdf_path = get_file_path(cov)
-            all_keywords = extract_keywords(cov, pdf_path, db)
+            id = file_name.split("_")[0].remove("#")
+            pdf_path = get_file_path(id)
+            all_keywords = extract_keywords(id, pdf_path, db)
         print(all_keywords)
         print(
             f"Extracted keywords from {len(all_keywords)} PDFs and added them to the Database..."
         )
-    elif cov != "":
-        pdf_path = get_file_path(cov)
-        keywords = extract_keywords(cov, pdf_path, db)
+    elif id != "":
+        pdf_path = get_file_path(id)
+        keywords = extract_keywords(id, pdf_path, db)
         print(
             f"Extracted keywords {keywords} from {pdf_path} and added them to the Database..."
         )
     else:
         print(
-            "Please enter a covidence number using --cov [Covidence Number] or use --all"
+            "Please enter an ID, e.g. covidence number using --id [Covidence Number] or use --all"
         )
 
 
@@ -214,7 +214,7 @@ def keywords(
 
 @app.command()
 def annots(
-    cov: Annotated[str, typer.Option(help="Covidence number to extract keywords")] = "",
+    id: Annotated[str, typer.Option(help="ID, e.g. Covidence number to extract keywords")] = "",
     color: Annotated[
         str, typer.Option(help="Color of the annotations to extract")
     ] = "",
@@ -224,25 +224,25 @@ def annots(
     db: Annotated[bool, typer.Option(help="Save to SQLite database file")] = False,
 ):
     """Extracts the annotations from the PDFs"""
-    print(f"Fetching Annotations of {color} (themes,topic,colored texts) from {cov}...")
+    print(f"Fetching Annotations of {color} (themes,topic,colored texts) from {id}...")
 
     pdf_dir = get_pdf_dir()
     pdf_path = None
 
     if all:
         for file_name in os.listdir(pdf_dir):
-            cov = file_name.split("_")[0].remove("#")
-            pdf_path = get_file_path(cov)
-            res = extract_annots(cov, color, pdf_path, db)
+            id = file_name.split("_")[0].remove("#")
+            pdf_path = get_file_path(id)
+            res = extract_annots(id, color, pdf_path, db)
             print(res)
-    elif cov != "":
-        pdf_path = get_file_path(cov)
-        res = extract_annots(cov, color, pdf_path, db)
+    elif id != "":
+        pdf_path = get_file_path(id)
+        res = extract_annots(id, color, pdf_path, db)
         print(res)
     else:
         print(
             """
-[bold red]Please enter a covidence number using --cov [Covidence Number] or use --all[/bold red]
+[bold red]Please enter an ID, e.g. Covidence Number using --id [Covidence Number] or use --all[/bold red]
             """
         )
 
@@ -255,7 +255,7 @@ def annots(
 @app.command()
 def dist(
     term: Annotated[str, typer.Argument(help="Search term")] = "",
-    cov: Annotated[str, typer.Option(help="Covidence number")] = "",
+    id: Annotated[str, typer.Option(help="ID, e.g. Covidence number")] = "",
     output: Annotated[
         str,
         typer.Option(help="Output format, available options are Json, YAML and CSV"),
@@ -265,7 +265,7 @@ def dist(
     tdsheet: Annotated[
         bool,
         typer.Option(
-            help="Apply to Distribution Column on gs_studies_sheet_name Worksheet of Google Sheet"
+            help="Apply to Distribution Column on default_studies Worksheet of Google Sheet"
         ),
     ] = False,
     wsdsheet: Annotated[
@@ -274,24 +274,24 @@ def dist(
 ):
     """Extracts the distribution of a search term in the PDFs"""
 
-    if tdsheet == True and all == True and term == "" and cov == "":
+    if tdsheet == True and all == True and term == "" and id == "":
         res_total_dist_col = extract_total_dist_sheet_sync()
         print(
             f"Total distribution column update on Google Sheet Studies worksheet from db, {res_total_dist_col}"
         )
-    elif wsdsheet == True and all == True and term == "" and cov == "":
+    elif wsdsheet == True and all == True and term == "" and id == "":
         res_dist_ws = extract_dist_ws_sheet_sync()
         print(
             f"Total distribution worksheet update on Google Sheet from db, {res_dist_ws}"
         )
         # res_dist_ws = extract_dist_ws_sheet_sync()
-    elif all and cov == "" and term != "":
+    elif all and id == "" and term != "":
         pdf_dir: str = get_pdf_dir()
         for file_name in os.listdir(pdf_dir):
-            cov = file_name.split("_")[0].replace("#", "")
-            pdf_path: str = get_file_path(cov)
+            id = file_name.split("_")[0].replace("#", "")
+            pdf_path: str = get_file_path(id)
             if pdf_path.endswith(".pdf"):
-                total_count, dist_list = extract_dist(pdf_path, term, cov, db)
+                total_count, dist_list = extract_dist(pdf_path, term, id, db)
                 msg = {
                     "total_count": total_count,
                     "dist_list": dist_list,
@@ -299,22 +299,22 @@ def dist(
                 print(msg)
             else:
                 logger().info(f"{get_now()} {pdf_path} is not a PDF file.")
-    elif cov != "" and term != "" and all == False:
-        pdf_path = get_file_path(cov)
-        total_count, dist_list = extract_dist(pdf_path, term, cov, db)
+    elif id != "" and term != "" and all == False:
+        pdf_path = get_file_path(id)
+        total_count, dist_list = extract_dist(pdf_path, term, id, db)
         msg = {
             "total_count": total_count,
             "dist_list": dist_list,
         }
         print(msg)
-    elif cov != "" and term == "" and all == False and wsdsheet == True:
-        res_dist_ws = extract_dist_ws_sheet_sync(cov)
+    elif id != "" and term == "" and all == False and wsdsheet == True:
+        res_dist_ws = extract_dist_ws_sheet_sync(id)
         print(
             f"Total distribution worksheet update on Google Sheet from db, {res_dist_ws}"
         )
     else:
         print(
             """
-[bold red]Please enter a covidence number using --cov [Covidence Number] or use --all[/bold red]
+[bold red]Please enter an ID, e.g. covidence number using --id [Covidence Number] or use --all[/bold red]
             """
         )
