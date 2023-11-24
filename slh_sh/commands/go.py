@@ -15,6 +15,7 @@ app = typer.Typer()
 def gd(
     url: Annotated[str, typer.Argument(help="Google Drive URL")] = get_conf("gd_url")
 ):
+    """Opens the Google Drive folder in browser."""
     print(f"Opening Google Drive: {url}...")
     webbrowser.open(url)
 
@@ -23,6 +24,7 @@ def gd(
 def gs(
     url: Annotated[str, typer.Argument(help="Google Sheet URL")] = get_conf("gs_url")
 ):
+    """Opens the Google Sheet in browser."""
     print(f"Opening Google Sheet: {url}...")
     webbrowser.open(url)
 
@@ -33,6 +35,7 @@ def pdf(
     id: Annotated[str, typer.Argument(help="ID, e.g. Covidence number")] = "",
     # page: Annotated[str, typer.Option(help="Page number")] = "",
 ):
+    """Opens a PDF file in the default PDF reader."""
     pdf_path = get_file_path(id)
     print(pdf_path)
     if pdf_path is None:
@@ -67,6 +70,7 @@ def db(
         "sqlite_db"
     )
 ):
+    """Opens the SQLite database in the default database viewer."""
     print(f"Opening SQLite database: {sql}...")
 
     sql_path = Path.cwd() / sql

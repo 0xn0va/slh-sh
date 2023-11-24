@@ -25,7 +25,7 @@ from slh_sh.data.models import (
     Study,
 )
 
-app = typer.Typer()
+app = typer.Typer(no_args_is_help=True)
 
 
 @app.command()
@@ -209,9 +209,12 @@ def config():
 
     conn.close()
 
+
 @app.command()
 def fetch(
-    sheet: Annotated[str, typer.Argument(help="Name of the Sheet e.g. 'Stage 1' or Stage_1")] = "",
+    sheet: Annotated[
+        str, typer.Argument(help="Name of the Sheet e.g. 'Stage 1' or Stage_1")
+    ],
     dbtable: Annotated[
         str,
         typer.Argument(

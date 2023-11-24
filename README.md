@@ -6,7 +6,7 @@ SRL's Little Helper (SLH) is an unopinionated CLI tool in Python that improves w
 
 ```bash
 pip install slh-sh
-slh-sh self init
+slh-sh init
 slh-sh --help
 ```
 
@@ -28,7 +28,7 @@ slh-sh --help
 - Fetch and sync data from Google Sheets to new database table.
 
 **Review**
-- Open PDF files with default PDF viewer from CLI with its ID number - `slh-sh go pdf 436`
+- Open PDF files with default PDF viewer from CLI with its ID number - `slh-sh pdf 436`
 - Highlight PDF files with defined "Theme" in Config file with specific color.
 
 **Get info**
@@ -49,7 +49,7 @@ slh-sh would automate all the repetitive tasks.
 
 The only manual steps (12, 16, 17) with slh-sh would be:
 
-- Writing a minimal one line command, e.g. `slh-sh go pdf 120`
+- Writing a minimal one line command, e.g. `slh-sh pdf 120`
 - Reading the article and highlighting the texts based on provided Theme Color in Config File.
 - Writing your paper.
 
@@ -97,9 +97,9 @@ pip install slh-sh
 
 **Run**
 
-1. Create a folder and copy default config file from below OR use `slh-sh self init` to create a new project folder from default template or a questionaire.
+1. Create a folder and copy default config file from below OR use `slh-sh init` to create a new project folder from default template or a questionaire.
 2. `slh-sh [Command] --help` - to see the help for a command.
-3. `slh-sh self list` - to see the available commands.
+3. `slh-sh list` - to see the available commands.
 
 
 ## Folder structure
@@ -201,7 +201,7 @@ sources:
 
 ```bash
 # Initialize a new project folder
-slh-sh self init
+slh-sh init
 
 # Learn about slh-sh commands
 slh-sh --help
@@ -210,7 +210,7 @@ slh-sh --help
 slh-sh [Command] --help
 
 # See the list of available commands
-slh-sh self list
+slh-sh list
 
 # Import studies from CSV file to database
 slh-sh add csv studies.csv
@@ -251,26 +251,26 @@ slh-sh sync update --col "Keywords" --cov [Covidence Number] --apply
 slh-sh sync fetch 'Stage 1' Stage_1_Table
 
 # Get info about a study and its Citation and Bibliography from a database table by ID.
-slh-sh get info 5 --table Stage_1 --idcol Covidence --copy
+slh-sh info 5 --table Stage_1 --idcol Covidence --copy
 
 # Query the database with SQL query or with provided arguments based on author, ID, theme and sub theme.
 slh-sh query John,120,192 Stage_1 Derogation -c
 slh-sh query "SELECT * FROM Stage_1 WHERE Author LIKE '%John%' AND ID IN (120,192) AND Theme = 'Derogation'" -s
 
 # Open Google Drive folder in browser
-slh-sh go gd
+slh-sh gd
 
 # Open Google Sheets in browser
-slh-sh go gs
+slh-sh gs
 
 # Open SQLite database wit default SQLite viewer
-slh-sh go db
+slh-sh db
 
 # Open PDF file with default PDF viewer
-slh-sh go pdf [ID e.g. Covidence Number]
+slh-sh pdf [ID e.g. Covidence Number]
 
 # Open DOI in browser
-slh-sh go doi [ID e.g. Covidence Number]
+slh-sh doi [ID e.g. Covidence Number]
 
 ```
 
