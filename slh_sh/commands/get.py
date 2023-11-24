@@ -16,7 +16,9 @@ app = typer.Typer()
 @app.command()
 def info(
     id: Annotated[str, typer.Argument(help="ID, e.g. Covidence number")] = "",
-    table: Annotated[str, typer.Option(help="Table name")] = get_conf("default_studies"),
+    table: Annotated[str, typer.Option(help="Table name")] = get_conf(
+        "default_studies"
+    ),
     idcol: Annotated[str, typer.Option(help="ID column name")] = get_conf("default_id"),
     copy: Annotated[bool, typer.Option(help="Copy to clipboard")] = False,
 ):

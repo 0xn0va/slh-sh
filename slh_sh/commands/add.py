@@ -7,7 +7,7 @@ from rich import print
 
 from slh_sh.utils.file import get_conf
 
-app = typer.Typer()
+app = typer.Typer(no_args_is_help=True)
 
 
 @app.command("csv")  # TODO: REFACTOR

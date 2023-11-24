@@ -1,14 +1,13 @@
 import typer
 import time
+import os
 
 from pathlib import Path
 from rich import print
 
 from slh_sh.utils.config import saveConfigFile
 
-# from slh_sh.utils.db import create_db
-
-slh_version: str = "0.1.9"
+slh_version: str = "0.1.10"
 
 app = typer.Typer()
 
@@ -19,11 +18,10 @@ default_project_name: str = (
 
 @app.command()
 def version():
+    """Prints the version."""
     print(
         f"""
-
-            SLRs Little Helper (slh) {slh_version}
-
+SLRs Little Helper (slh) {slh_version}
         """
     )
 
@@ -44,15 +42,6 @@ def list():
                 # slh-sh extract cit --help
 
             Commands:
-                - self
-                    - init      # Initializes the project, questionaire or default config file
-                    - list      # Lists all available commands
-                    - check     # Checks if there is a new version
-                    - update    # Updates to the latest version.
-                    - backup    # Creates compressed backup file from the project directory.
-                    - restore   # Restores the project directory from the backup file
-                    - logs      # Shows the logs
-                    - version   # Shows the version
                 - add
                     - csv       # Loads studies.csv into sqlite database.
                 - extract
@@ -67,46 +56,52 @@ def list():
                     - update    # Update the Google Sheets with data from Database.
                     - fetch     # Fetch and save data from Google Sheet to a new database table.
                     - config    # Iterate over Themes, Searches, and Sources in config.yaml and insert into database.
-                - get
-                    - info      # Get info about a study and its Citation and Bibliography from a database table by ID.
-                - query         # Get themes about a study from a database table by ID.
-                - go
-                    - gd        # Opens the Google Drive folder.
-                    - gs        # Opens the Google Sheet.
-                    - pdf       # Opens a PDF file in the default PDF reader.
-                    - db        # Opens the SQLite database file in the default database viewer.
-                    - doi       # Opens the DOI URL in the default browser.
-        """
+                - init      # Initializes the project, questionaire or default config file
+                - list      # Lists all available commands
+                - logs      # Shows the logs
+                - version   # Shows the version
+                - info      # Get info about a study and its Citation and Bibliography from a database table by ID.
+                - query     # Get themes about a study from a database table by ID.
+                - gd        # Opens the Google Drive folder.
+                - gs        # Opens the Google Sheet.
+                - pdf       # Opens a PDF file in the default PDF reader.
+                - db        # Opens the SQLite database file in the default database viewer.
+                - doi       # Opens the DOI URL in the default browser.
+    """
     )
 
 
-@app.command()
-def check():
-    print("Check... - Not Implemented Yet")
+# @app.command()
+# def check():
+#     print("Check... - Not Implemented Yet")
 
 
-@app.command()
-def update():
-    print("Update... - Not Implemented Yet")
+# @app.command()
+# def update():
+#     print("Update... - Not Implemented Yet")
 
 
-@app.command()
-def backup():
-    print("Backup... - Not Implemented Yet")
+# @app.command()
+# def backup():
+#     print("Backup... - Not Implemented Yet")
 
 
-@app.command()
-def restore():
-    print("Restore... - Not Implemented Yet")
+# @app.command()
+# def restore():
+#     print("Restore... - Not Implemented Yet")
 
 
 @app.command()
 def logs():
-    print("Logs... - Not Implemented Yet")
+    """Prints the logs."""
+    if os.path.isfile("./logs/app.log"):
+        with open("./logs/app.log", "r") as f:
+            print(f.read())
 
 
 @app.command()
 def init(config: bool = typer.Option(False, help="Only create config file")):
+    """Initializes the project, questionaire or default config file."""
     print(
         """
 

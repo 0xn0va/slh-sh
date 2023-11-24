@@ -19,7 +19,7 @@ from slh_sh.modules.extract import (
     extract_dist_ws_sheet_sync,
 )
 
-app = typer.Typer()
+app = typer.Typer(no_args_is_help=True)
 
 ##
 ## Citation
