@@ -33,6 +33,7 @@ slh-sh --help
 
 **Get info**
 - Compile and format the data from database to a paper with citation.
+- Query the database with SQL query or with provided arguments based on author, ID, theme and sub theme.
 
 **Manage**
 - One project folder for config files, database, and PDF files.
@@ -251,6 +252,10 @@ slh-sh sync fetch 'Stage 1' Stage_1_Table
 
 # Get info about a study and its Citation and Bibliography from a database table by ID.
 slh-sh get info 5 --table Stage_1 --idcol Covidence --copy
+
+# Query the database with SQL query or with provided arguments based on author, ID, theme and sub theme.
+slh-sh query John,120,192 Stage_1 Derogation -c
+slh-sh query "SELECT * FROM Stage_1 WHERE Author LIKE '%John%' AND ID IN (120,192) AND Theme = 'Derogation'" -s
 
 # Open Google Drive folder in browser
 slh-sh go gd

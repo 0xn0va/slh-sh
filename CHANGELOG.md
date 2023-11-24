@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.9] - 2023-11-24
+
+### Added
+- `slh-sh query [query]` Multipart with one or more arguments, first argument one or more Author or ID separated by colon, second ThemeName, third SubThemeName
+e.g. slh-sh query themes John,120,192 Stage_1 Derogation  or a direct SQL query with -s/--sqlquery
+
 ## [0.1.8] - 2023-11-18
 - `slh-sh go doi [id]` command to open doi in browser, example: `slh-sh go doi 91`
 
