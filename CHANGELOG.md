@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.10] - 2023-11-24
+
+### Changed
+- Refactored command schemas, see `slh-sh --help` and `slh-sh list` for more information.
+
 ## [0.1.9] - 2023-11-24
 
 ### Added

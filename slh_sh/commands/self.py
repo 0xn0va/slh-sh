@@ -7,7 +7,7 @@ from rich import print
 
 from slh_sh.utils.config import saveConfigFile
 
-slh_version: str = "0.1.9"
+slh_version: str = "0.1.10"
 
 app = typer.Typer()
 
