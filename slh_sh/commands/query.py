@@ -1,6 +1,4 @@
 import typer
-import os
-import json
 import sqlite3 as sql
 import pyperclip
 
@@ -40,6 +38,7 @@ e.g. slh-sh query themes John,120,192 Stage_1 Derogation"""
     if len(terms) == 2:
         theme = terms[1]
     if len(terms) == 3:
+        theme = terms[1]
         subtheme = terms[2]
     if len(terms) > 3:
         print("Too many arguments!")
@@ -103,30 +102,50 @@ e.g. slh-sh query themes John,120,192 Stage_1 Derogation"""
             if subtheme == "":
                 curr.execute(f"SELECT * FROM {theme} WHERE {idname} = {value['ID']}")
                 db_res = curr.fetchone()
-                if db_res[0] == "None":
+                if db_res == None:
                     print(
                         f"Theme for Study with the ID: {value['ID']} not found in database table: {theme}!"
                     )
                 else:
-                    # remove ID column and None values
-                    db_res = [x for x in db_res if x != "None"]
-                    db_res = [x for x in db_res if x != value["ID"]]
-                    # add column names
-                    db_res = dict(zip(curr.description[1:], db_res))
-                    # remove empty columns
-                    db_res = {k: v for k, v in db_res.items() if v != ""}
-                    value["Theme_Text"] = db_res
+                    # add column names to result
+                    for i, col in enumerate(db_res):
+                        value[curr.description[i][0]] = col
             else:
                 curr.execute(
-                    f"SELECT {subtheme} FROM {theme} WHERE {idname} = {value['ID']}"
+                    f"SELECT {theme},{subtheme} FROM {theme} WHERE {idname} = {value['ID']}"
                 )
                 db_res = curr.fetchone()
-                if db_res[0] == "None":
+                if db_res == None:
                     print(
                         f"Subtheme for Study with the ID: {value['ID']} not found in database table: {theme}!"
                     )
                 else:
-                    value["Subtheme_Text"] = db_res[0]
+                    value["Theme_Text"] = db_res[0]
+                    value["Subtheme_Text"] = db_res[1]
+    else:
+        print("No theme specified!")
 
     conn.close()
     print(results)
+
+    if copy:
+        text = ""
+        if subtheme != "":
+            text = value["Subtheme_Text"] + " " + value["Citation"]
+        elif theme != "":
+            text = value[theme] + " " + value["Citation"]
+        else:
+            # add citation from results
+            for key, value in results.items():
+                text += value["Citation"] + "\n"
+        pyperclip.copy(text)
+        print(
+            """
+
+The following copied to clipboard!
+
+Note: If query was for multiple studies, only the last result was copied.
+
+"""
+        )
+        print(text + "\n")
