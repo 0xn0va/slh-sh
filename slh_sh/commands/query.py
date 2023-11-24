@@ -1,6 +1,7 @@
 import typer
 import sqlite3 as sql
 import pyperclip
+import json
 
 from rich import print
 from typing_extensions import Annotated
@@ -17,7 +18,7 @@ def query(
         typer.Argument(
             help="""Multipart with one or more arguments,
 first argument one or more Author or ID separated by colon, second ThemeName, third SubThemeName
-e.g. slh-sh query themes John,120,192 Stage_1 Derogation"""
+e.g. slh-sh query themes John,120,192 Stage_1 Derogation or a direct SQL query with -s/--sqlquery"""
         ),
     ],
     studytable: Annotated[
@@ -26,15 +27,57 @@ e.g. slh-sh query themes John,120,192 Stage_1 Derogation"""
     idname: Annotated[
         str, typer.Option("-id", "--idname", help="ID column name")
     ] = get_conf("default_id"),
+    sqlquery: Annotated[
+        bool, typer.Option("-s", "--sqlquery", help="SQL query")
+    ] = False,
     copy: Annotated[
         bool, typer.Option("-c", "--copy", help="Copy to clipboard")
     ] = False,
 ):
     """Get themes about a study from a database table by ID."""
 
+    if sqlquery != False:
+        conn = sql.connect(get_conf("sqlite_db"))
+        curr = conn.cursor()
+        print(terms[0])
+        curr.execute(terms[0])
+        db_res = curr.fetchall()
+        if db_res == None:
+            print(
+                f"""
+Nothing Found!
+sqlquery: {sqlquery}
+result: {db_res}
+"""
+            )
+        else:
+            db_res = [
+                dict(zip([col[0] for col in curr.description], row)) for row in db_res
+            ]
+            json_data = json.dumps(db_res, indent=4)
+            print(json_data)
+            if copy:
+                pyperclip.copy(json_data)
+                print("Copied to clipboard!")
+        conn.close()
+        exit()
+
     authors = terms[0].split(",")
     theme = ""
     subtheme = ""
+    if len(terms) == 1:
+        input = terms[0].lower()
+        if input and " " in input:
+            print(
+                """
+SQL query detected!
+to query sql database directly use -s/--sqlquery option, e.g.:
+slh-sh query -s "SELECT * FROM studies WHERE authors LIKE '%John%'"
+"""
+            )
+            exit()
+        else:
+            pass
     if len(terms) == 2:
         theme = terms[1]
     if len(terms) == 3:
@@ -143,7 +186,6 @@ e.g. slh-sh query themes John,120,192 Stage_1 Derogation"""
             """
 
 The following copied to clipboard!
-
 Note: If query was for multiple studies, only the last result was copied.
 
 """
