@@ -28,6 +28,7 @@ def version():
 SLRs Little Helper (slh) {slh_version}
         """
     )
+    logger().info(f"slh-sh version: {slh_version}")
 
 
 @app.command()
@@ -42,7 +43,6 @@ def list():
 
             Example:
                 # slh-sh --help
-                # slh-sh self --help
                 # slh-sh extract cit --help
 
             Commands:
@@ -319,8 +319,8 @@ def init(config: bool = typer.Option(False, help="Only create config file")):
                 - [yellow]Move studies.csv to the {project_dir}[/yellow]
                 - [yellow]Move export.html to the {project_dir}[/yellow]
                 # [yellow]cd {project_dir}[/yellow]
-                # [yellow]slh --help[/yellow]
-                # [yellow]slh load csv[/yellow] # to load studies.csv into sqlite database
+                # [yellow]slh-sh --help[/yellow]
+                # [yellow]slh-sh add csv[/yellow] # to load studies.csv into sqlite database
 
             """
         )

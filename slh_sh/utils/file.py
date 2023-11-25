@@ -20,16 +20,7 @@ def get_conf(key: str) -> str:
         with open(config_path, "r") as f:
             config = yaml.safe_load(f)
     else:
-        print(
-            """
-            [bold green]Good day researcher :wave:[/bold green]
-
-            The [red]config.yaml[/red] file does not exist in the current directory.
-
-                - Run [yellow]slh self init[/yellow] to initialize a new SLR project :rocket:
-                - [blue]
-            """
-        )
+        return "config.yaml file does not exist."
 
     return config[key]
 

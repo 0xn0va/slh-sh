@@ -1,5 +1,8 @@
 import typer
 
+from pathlib import Path
+from rich import print
+
 import slh_sh.commands.add as add
 import slh_sh.commands.extract as extract
 import slh_sh.commands.sync as sync
@@ -8,7 +11,6 @@ from slh_sh.commands.self import version, list, logs, init, check
 from slh_sh.commands.go import gd, gs, pdf, db, doi
 from slh_sh.commands.query import query
 from slh_sh.commands.get import info
-from slh_sh.utils.log import logger
 
 
 app = typer.Typer(
@@ -31,6 +33,26 @@ app.command(rich_help_panel="Shortcuts")(gs)
 app.command(rich_help_panel="Shortcuts")(db)
 app.command(rich_help_panel="Data")(info)
 app.command(rich_help_panel="Data")(query)
+
+
+@app.callback()
+def callback(ctx: typer.Context):
+    """
+    slh-sh is a command line tool to manage systematic literature reviews.
+    """
+    config_path = Path.cwd() / "config.yaml"
+    if config_path.exists():
+        pass
+    else:
+        print(
+            """
+            [bold green]Good day researcher :wave:[/bold green]
+
+            The [red]config.yaml[/red] file does not exist in the current directory.
+
+                - Run [yellow]slh-sh init[/yellow] to initialize a new SLR project :rocket:
+            """
+        )
 
 
 if __name__ == "__main__":
