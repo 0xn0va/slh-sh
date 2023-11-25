@@ -6,6 +6,7 @@ from pathlib import Path
 from rich import print
 
 from slh_sh.utils.config import saveConfigFile
+from slh_sh.utils.log import logger
 
 slh_version: str = "0.1.10"
 
@@ -94,8 +95,8 @@ def list():
 @app.command()
 def logs():
     """Prints the logs."""
-    if os.path.isfile("./logs/app.log"):
-        with open("./logs/app.log", "r") as f:
+    if os.path.isfile("slh_sh.log"):
+        with open("slh_sh.log", "r") as f:
             print(f.read())
 
 

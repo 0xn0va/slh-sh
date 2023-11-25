@@ -488,9 +488,7 @@ def extract_total_dist_sheet_sync():
     gs = get_conf("gs_url")
     ws = get_worksheet_by_name(gs, get_conf("default_studies"))
     headers_row_values = get_worksheet_headers_row_values(ws)
-    id_col_values = get_worksheet_id_col_index_values(
-        ws, get_conf("default_id")
-    )
+    id_col_values = get_worksheet_id_col_index_values(ws, get_conf("default_id"))
     updating_col_index_header = get_worksheet_updating_col_index_header(
         headers_row_values, "Distribution"
     )
@@ -530,9 +528,7 @@ def extract_dist_ws_sheet_sync(id: str):
     else:
         study_id = dbs.query(Study).filter(Study.Covidence == id).first()
         dist_rows = (
-            dbs.query(Distribution)
-            .filter(Distribution.studies_id == study_id.id)
-            .all()
+            dbs.query(Distribution).filter(Distribution.studies_id == study_id.id).all()
         )
     # dist_rows = dbs.query(Distribution).all()
     dist_rows_df = pd.DataFrame(

@@ -20,7 +20,9 @@ def info(
         "default_studies"
     ),
     idcol: Annotated[str, typer.Option(help="ID column name")] = get_conf("default_id"),
-    copy: Annotated[bool, typer.Option(help="Copy to clipboard")] = False,
+    copy: Annotated[
+        bool, typer.Option("-c", "--copy", help="Copy to clipboard")
+    ] = False,
 ):
     """Get info about a study and its Citation and Bibliography from a database table by ID."""
 

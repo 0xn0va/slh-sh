@@ -143,6 +143,7 @@ def update(
         #     id = id.split("-")
         #     print(id)
         #     sys.exit()
+    logger().info(f"Sync finished successfully from database to Google Sheet!")
 
 
 @app.command()
@@ -208,6 +209,7 @@ def config():
             print(f"Source {source} already exists in database!")
 
     conn.close()
+    logger().info(f"Sync finished successfully from config.yaml to database!")
 
 
 @app.command()
@@ -263,3 +265,4 @@ def fetch(
     conn.close()
 
     print(f"Data from {dbtable} added to corresponding database table!")
+    logger().info(f"Data from {dbtable} added to corresponding database table!")

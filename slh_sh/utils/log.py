@@ -1,40 +1,38 @@
-import os
 import logging
-import datetime
-from logging.handlers import RotatingFileHandler
+import sys
 
 
-def logger():
-    """Create a logger object and return it."""
+def logger() -> logging.Logger:
+    """Returns the logger for the app."""
 
-    # create ./logs directory if it doesn't exist
-    if not os.path.exists("./logs"):
-        os.makedirs("./logs")
+    executed_command = full_command()
 
-    logging.basicConfig(
-        level=logging.DEBUG,
-        format="%(asctime)s %(levelname)s: %(message)s",
-    )
-    logger = logging.getLogger(__name__)
+    extra: dict[str, str] = {"command": executed_command}
+
+    app_logger = logging.getLogger("slh_sh")
+    app_logger.setLevel(logging.DEBUG)
+
     # remove old handlers
-    logger.handlers = []
-
-    file_handler = logging.FileHandler("./logs/app.log")  # TODO: make this configurable
-
-    logger.addHandler(file_handler)
-
-    # make logger only logs to file and not console
-    logger.propagate = False
-
-    # rotate logs every 10MB
-    file_handler = RotatingFileHandler(
-        "./logs/app.log", maxBytes=10 * 1024 * 1024, backupCount=5
+    app_logger.handlers = []
+    # configure the handler and formatter for app_logger
+    handler = logging.FileHandler(f"slh_sh.log")
+    formatter = logging.Formatter(
+        "%(asctime)s - %(levelname)s - %(command)s  - %(message)s"
     )
-    return logger
+
+    # add formatter to the handler
+    handler.setFormatter(formatter)
+    # add handler to the logger
+    app_logger.addHandler(handler)
+
+    app_logger = logging.LoggerAdapter(app_logger, extra)
+
+    return app_logger
 
 
-def get_now():
-    """Get current date and time"""
-    now = datetime.datetime.now()
-    fnow = now.strftime("%Y-%m-%d %H:%M:%S")
-    return fnow
+def full_command() -> str:
+    """Returns the full command as a string."""
+
+    full_command = " ".join(sys.argv).split("/")[-1].split("\\")[-1]
+
+    return full_command

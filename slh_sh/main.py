@@ -8,25 +8,29 @@ from slh_sh.commands.self import version, list, logs, init
 from slh_sh.commands.go import gd, gs, pdf, db, doi
 from slh_sh.commands.query import query
 from slh_sh.commands.get import info
+from slh_sh.utils.log import logger
 
 
-app = typer.Typer(no_args_is_help=True)
+app = typer.Typer(
+    no_args_is_help=True, rich_markup_mode="rich", epilog="Made with [red]:heart:[/red]"
+)
 
 app.add_typer(add.app, name="add")
 app.add_typer(extract.app, name="extract")
 app.add_typer(sync.app, name="sync")
 
-app.command()(version)
-app.command()(query)
-app.command()(info)
-app.command()(list)
-app.command()(logs)
-app.command()(init)
-app.command()(pdf)
-app.command()(doi)
-app.command()(gd)
-app.command()(gs)
-app.command()(db)
+app.command(rich_help_panel="slh-sh")(version)
+app.command(rich_help_panel="Data")(query)
+app.command(rich_help_panel="Data")(info)
+app.command(rich_help_panel="slh-sh")(list)
+app.command(rich_help_panel="slh-sh")(logs)
+app.command(rich_help_panel="slh-sh")(init)
+app.command(rich_help_panel="Shortcuts")(pdf)
+app.command(rich_help_panel="Shortcuts")(doi)
+app.command(rich_help_panel="Shortcuts")(gd)
+app.command(rich_help_panel="Shortcuts")(gs)
+app.command(rich_help_panel="Shortcuts")(db)
+
 
 if __name__ == "__main__":
     app()

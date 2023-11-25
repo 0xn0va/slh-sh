@@ -6,6 +6,7 @@ from typing_extensions import Annotated
 from rich import print
 
 from slh_sh.utils.file import get_conf
+from slh_sh.utils.log import logger
 
 app = typer.Typer(no_args_is_help=True)
 
@@ -80,7 +81,11 @@ def csv(
             # check if the study is already in the database based on the covidence number as id if not insert it
             for row in rows:
                 curr.execute(
-                    f"SELECT * FROM studies WHERE ? = ?", (get_conf("default_id"), row[12],)
+                    f"SELECT * FROM studies WHERE ? = ?",
+                    (
+                        get_conf("default_id"),
+                        row[12],
+                    ),
                 )
                 if len(curr.fetchall()) > 0:
                     print(
@@ -105,3 +110,6 @@ def csv(
     conn.commit()
     conn.close()
 
+    logger().info(
+        f"{len(rows)} studies processed from {csv} to {get_conf('sqlite_db')}"
+    )

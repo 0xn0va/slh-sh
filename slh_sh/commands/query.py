@@ -7,6 +7,7 @@ from rich import print
 from typing_extensions import Annotated
 
 from slh_sh.utils.file import get_conf
+from slh_sh.utils.log import logger
 
 app = typer.Typer()
 
@@ -24,8 +25,8 @@ e.g. slh-sh query themes John,120,192 Stage_1 Derogation or a direct SQL query w
     studytable: Annotated[
         str, typer.Option("-st", "--studytable", help="Study table name")
     ] = get_conf("default_studies"),
-    idname: Annotated[
-        str, typer.Option("-id", "--idname", help="ID column name")
+    idcol: Annotated[
+        str, typer.Option(help="ID column name")
     ] = get_conf("default_id"),
     sqlquery: Annotated[
         bool, typer.Option("-s", "--sqlquery", help="SQL query")
@@ -60,6 +61,7 @@ result: {db_res}
                 pyperclip.copy(json_data)
                 print("Copied to clipboard!")
         conn.close()
+        logger().info(f"SQL query executed: {terms[0]}")
         exit()
 
     authors = terms[0].split(",")
@@ -94,7 +96,7 @@ slh-sh query -s "SELECT * FROM studies WHERE authors LIKE '%John%'"
 
     for author in authors:
         if author.isnumeric():
-            curr.execute(f"SELECT * FROM {studytable} WHERE {idname} = {author}")
+            curr.execute(f"SELECT * FROM {studytable} WHERE {idcol} = {author}")
             db_res = curr.fetchone()
             if db_res == "None":
                 print(
@@ -124,7 +126,7 @@ slh-sh query -s "SELECT * FROM studies WHERE authors LIKE '%John%'"
                 )
             else:
                 id_index = [
-                    i for i, col in enumerate(curr.description) if col[0] == idname
+                    i for i, col in enumerate(curr.description) if col[0] == idcol
                 ][0]
                 curr.execute(
                     f"SELECT citation, bibliography FROM studies WHERE {get_conf('default_id')} = {db_res[id_index]}"
@@ -143,7 +145,7 @@ slh-sh query -s "SELECT * FROM studies WHERE authors LIKE '%John%'"
     if theme != "":
         for key, value in results.items():
             if subtheme == "":
-                curr.execute(f"SELECT * FROM {theme} WHERE {idname} = {value['ID']}")
+                curr.execute(f"SELECT * FROM {theme} WHERE {idcol} = {value['ID']}")
                 db_res = curr.fetchone()
                 if db_res == None:
                     print(
@@ -155,7 +157,7 @@ slh-sh query -s "SELECT * FROM studies WHERE authors LIKE '%John%'"
                         value[curr.description[i][0]] = col
             else:
                 curr.execute(
-                    f"SELECT {theme},{subtheme} FROM {theme} WHERE {idname} = {value['ID']}"
+                    f"SELECT {theme},{subtheme} FROM {theme} WHERE {idcol} = {value['ID']}"
                 )
                 db_res = curr.fetchone()
                 if db_res == None:
@@ -191,3 +193,4 @@ Note: If query was for multiple studies, only the last result was copied.
 """
         )
         print(text + "\n")
+    logger().info(f"Query executed: {terms}")
