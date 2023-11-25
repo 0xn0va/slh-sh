@@ -1,12 +1,15 @@
 import typer
 import time
 import os
+import sqlite3
 
 from pathlib import Path
 from rich import print
 
 from slh_sh.utils.config import saveConfigFile
 from slh_sh.utils.log import logger
+from slh_sh.utils.file import get_pdf_dir
+from slh_sh.utils.update import get_remote_version
 
 slh_version: str = "0.1.10"
 
@@ -72,14 +75,66 @@ def list():
     )
 
 
-# @app.command()
-# def check():
-#     print("Check... - Not Implemented Yet")
+@app.command()
+def check():
+    """Check the status of the project."""
 
+    print("\n[red]Config file:[/red]")
+    config_file = Path.cwd() / "config.yaml"
+    if config_file.is_file():
+        # dump contents of config file
+        with open(config_file, "r") as f:
+            print(f.read())
 
-# @app.command()
-# def update():
-#     print("Update... - Not Implemented Yet")
+    # count and list tables in database
+    sqlite_db = Path.cwd() / "slh.db"
+    if sqlite_db.is_file():
+        # count number of tables in database
+        # list tables in database
+        table_count = 0
+        table_list = []
+        columns = {}
+        print(f"[red]Database:[/red] {sqlite_db}")
+        conn = sqlite3.connect(sqlite_db)
+        cursor = conn.cursor()
+        cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
+        tables = cursor.fetchall()
+        for table in tables:
+            table_count += 1
+            table_list.append(table[0])
+        print(f"[red]Table Count:[/red] {table_count}")
+        print(f"[red]Tables:[/red] {table_list}")
+        # list columns in each table
+        print(f"[red]Columns:[/red]")
+        for table in table_list:
+            cursor.execute(f"PRAGMA table_info({table});")
+            columns = cursor.fetchall()
+            # add column names to columns dictionary
+            print(f"[red]{table}[/red]")
+            for column in columns:
+                print(f"    {column[1]}")
+        conn.close()
+
+    # print number of pdf files in the pdf directory defined in config file
+    pdf_dir = get_pdf_dir()
+    if pdf_dir.is_dir():
+        pdf_count = 0
+        for pdf in pdf_dir.iterdir():
+            pdf_count += 1
+        print(f"\n[red]PDF Count:[/red] {pdf_count}")
+
+    # check if pypi version is the same as the local version
+    pypi_version = get_remote_version()
+    print("\n[red]slh-sh version:[/red]")
+    print(f"    [red]Local:[/red] {slh_version}")
+    print(f"    [red]Pypi:[/red] {pypi_version}")
+    print("\n    https://pypi.org/project/slh-sh/")
+    print("    https://github.com/0xn0va/slh-sh")
+    if slh_version == pypi_version:
+        print("\n    [green]slh-sh version is up to date.[/green]\n")
+    else:
+        print("\n    [red]A new version is available[/red]")
+        print("\n    Update: [red]pip install slh-sh --upgrade[/red]\n")
 
 
 # @app.command()
