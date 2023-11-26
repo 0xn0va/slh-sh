@@ -6,7 +6,7 @@ from pathlib import Path
 from typing_extensions import Annotated
 
 from slh_sh.utils.file import get_pdf_dir, get_file_path, get_conf
-from slh_sh.utils.log import logger, get_now
+from slh_sh.utils.log import logger
 from slh_sh.modules.extract import (
     extract_cit,
     extract_bib,
@@ -49,6 +49,7 @@ def cit(
     print(citations)
     print(f"{len(citations)} citations added to the database")
     print(authorNoneRemoved)
+    logger().info(f"{len(citations)} citations added to the database")
 
 
 ##
@@ -80,6 +81,7 @@ def bib(
 
     print("Bibliographies added to the database:")
     print(bibs)
+    logger().info(f"{len(bibs)} bibliographies added to the database")
 
 
 ##
@@ -137,6 +139,7 @@ def dl(
         :tada: {len(study_headers)} PDFs from {html} to {pdf_dir} downloaded.
         """
     )
+    logger().info(f"{len(study_headers)} PDFs from {html} to {pdf_dir} downloaded.")
 
 
 ##
@@ -160,8 +163,12 @@ def filename(
     print(
         f"Updated database with {len(fileNames)} filenames on studies Table, Filenames column..."
     )
+    logger().info(f"{len(fileNames)} filenames added to the database")
     if rename:
         print(
+            f"Renamed {len(fileNames)} PDFs in {get_conf('pdf_path')} folder with the filenames..."
+        )
+        logger().info(
             f"Renamed {len(fileNames)} PDFs in {get_conf('pdf_path')} folder with the filenames..."
         )
 
@@ -173,7 +180,9 @@ def filename(
 
 @app.command()
 def keywords(
-    id: Annotated[str, typer.Option(help="ID e.g. Covidence number to extract keywords")] = "",
+    id: Annotated[
+        str, typer.Option(help="ID e.g. Covidence number to extract keywords")
+    ] = "",
     all: Annotated[
         bool,
         typer.Option(help="Extract keywords from all PDFs in pdf_path folder"),
@@ -205,6 +214,9 @@ def keywords(
         print(
             "Please enter an ID, e.g. covidence number using --id [Covidence Number] or use --all"
         )
+    logger().info(
+        f"Extracted keywords {keywords} from {pdf_path} and added them to the Database..."
+    )
 
 
 ##
@@ -214,7 +226,9 @@ def keywords(
 
 @app.command()
 def annots(
-    id: Annotated[str, typer.Option(help="ID, e.g. Covidence number to extract keywords")] = "",
+    id: Annotated[
+        str, typer.Option(help="ID, e.g. Covidence number to extract keywords")
+    ] = "",
     color: Annotated[
         str, typer.Option(help="Color of the annotations to extract")
     ] = "",
@@ -245,6 +259,9 @@ def annots(
 [bold red]Please enter an ID, e.g. Covidence Number using --id [Covidence Number] or use --all[/bold red]
             """
         )
+    logger().info(
+        f"Extracted annotations from {pdf_path} and added them to the Database..."
+    )
 
 
 ##
@@ -298,7 +315,7 @@ def dist(
                 }
                 print(msg)
             else:
-                logger().info(f"{get_now()} {pdf_path} is not a PDF file.")
+                logger().info(f"{pdf_path} is not a PDF file.")
     elif id != "" and term != "" and all == False:
         pdf_path = get_file_path(id)
         total_count, dist_list = extract_dist(pdf_path, term, id, db)
@@ -318,3 +335,6 @@ def dist(
 [bold red]Please enter an ID, e.g. covidence number using --id [Covidence Number] or use --all[/bold red]
             """
         )
+    logger().info(
+        f"Extracted distribution from {pdf_path} and added them to the Database..."
+    )

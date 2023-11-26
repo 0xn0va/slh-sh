@@ -7,6 +7,7 @@ from rich import print
 from typing_extensions import Annotated
 
 from slh_sh.utils.file import get_file_path, get_conf
+from slh_sh.utils.log import logger
 
 app = typer.Typer()
 
@@ -18,6 +19,7 @@ def gd(
     """Opens the Google Drive folder in browser."""
     print(f"Opening Google Drive: {url}...")
     webbrowser.open(url)
+    logger().info(f"Opened Google Drive: {url}")
 
 
 @app.command()
@@ -27,6 +29,7 @@ def gs(
     """Opens the Google Sheet in browser."""
     print(f"Opening Google Sheet: {url}...")
     webbrowser.open(url)
+    logger().info(f"Opened Google Sheet: {url}")
 
 
 @app.command()
@@ -43,24 +46,7 @@ def pdf(
         typer.Exit()
     else:
         typer.launch(pdf_path)
-    ##
-    ## Opens a PDF on certain page, Not Supported by PDF reader Apps or OS
-    ##
-    # if page != "":
-    #     # open the pdf file with the page number with local pdf reader
-    #     # open_pdf(id, page)
-    #     print(pdf_path)
-    #     # check if os is windows
-    #     if os.name == "nt":
-    #         subprocess.run(["acroread", "--goto", str(page), pdf_path])
-    #     # check if os is mac
-    #     # elif os.name == "darwin":
-    #     #     subprocess.run(["open", "-a", "Preview", pdf_path])
-    #     # check if os is linux
-    #     # elif os.name == "posix":
-    #     #     subprocess.run(["xdg-open", pdf_path])
-    #     else:
-    #         print("OS not supported")
+    logger().info(f"Opened PDF: {pdf_path}")
 
 
 @app.command()
@@ -79,6 +65,7 @@ def db(
         print(f"SQLite database not found")
         typer.Exit()
     webbrowser.open(sql_path.as_uri())
+    logger().info(f"Opened SQLite database: {sql_path}")
 
 
 @app.command()
@@ -100,3 +87,4 @@ def doi(
         doi = doi[0]
         print(f"Opening DOI: {doi}...")
         webbrowser.open(f"https://doi.org/{doi}")
+    logger().info(f"Opened DOI: {doi}")
