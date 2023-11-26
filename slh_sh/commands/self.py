@@ -11,7 +11,7 @@ from slh_sh.utils.log import logger
 from slh_sh.utils.file import get_pdf_dir
 from slh_sh.utils.update import get_remote_version
 
-slh_version: str = "0.1.10"
+slh_version: str = "0.1.11"
 
 app = typer.Typer()
 
@@ -61,6 +61,7 @@ def list():
                     - fetch     # Fetch and save data from Google Sheet to a new database table.
                     - config    # Iterate over Themes, Searches, and Sources in config.yaml and insert into database.
                 - init      # Initializes the project, questionaire or default config file
+                - check     # Check the status of the project.
                 - list      # Lists all available commands
                 - logs      # Shows the logs
                 - version   # Shows the version

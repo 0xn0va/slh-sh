@@ -17,9 +17,9 @@ app = typer.Typer(
     no_args_is_help=True, rich_markup_mode="rich", epilog="Made with [red]:heart:[/red]"
 )
 
-app.add_typer(add.app, name="add")
-app.add_typer(extract.app, name="extract")
-app.add_typer(sync.app, name="sync")
+app.add_typer(add.app, name="add", rich_help_panel="Database Import")
+app.add_typer(extract.app, name="extract", rich_help_panel="Data Extraction")
+app.add_typer(sync.app, name="sync", rich_help_panel="Sheet to Database Syncronization")
 
 app.command(rich_help_panel="slh-sh")(version)
 app.command(rich_help_panel="slh-sh")(list)
@@ -31,8 +31,8 @@ app.command(rich_help_panel="Shortcuts")(doi)
 app.command(rich_help_panel="Shortcuts")(gd)
 app.command(rich_help_panel="Shortcuts")(gs)
 app.command(rich_help_panel="Shortcuts")(db)
-app.command(rich_help_panel="Data")(info)
-app.command(rich_help_panel="Data")(query)
+app.command(rich_help_panel="Data Query")(info)
+app.command(rich_help_panel="Data Query")(query)
 
 
 @app.callback()
@@ -46,11 +46,11 @@ def callback(ctx: typer.Context):
     else:
         print(
             """
-            [bold green]Good day researcher :wave:[/bold green]
+[bold green]Good day researcher :wave:[/bold green]
 
-            The [red]config.yaml[/red] file does not exist in the current directory.
+The [red]config.yaml[/red] file does not exist in the current directory.
 
-                - Run [yellow]slh-sh init[/yellow] to initialize a new SLR project :rocket:
+    - Run [yellow]slh-sh init[/yellow] to initialize a new SLR project :rocket:
             """
         )
 
