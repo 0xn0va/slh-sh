@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.12] - 2023-11-26
+
+### Added
+- Use 'ALL' or 'all' as term to get all studies for a theme and subtheme, e.g. `slh-sh query all Stage_1 Derogation -c`
+
 ## [0.1.11] - 2023-11-26
 
 ### Added

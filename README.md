@@ -212,6 +212,9 @@ slh-sh [Command] --help
 # See the list of available commands
 slh-sh list
 
+# Check state of project and the application
+slh-sh check
+
 # Import studies from CSV file to database
 slh-sh add csv studies.csv
 
@@ -256,6 +259,9 @@ slh-sh info 5 --table Stage_1 --idcol Covidence --copy
 # Query the database with SQL query or with provided arguments based on author, ID, theme and sub theme.
 slh-sh query John,120,192 Stage_1 Derogation -c
 slh-sh query "SELECT * FROM Stage_1 WHERE Author LIKE '%John%' AND ID IN (120,192) AND Theme = 'Derogation'" -s
+
+# Query ALL studies for a theme and subtheme and copy to clipboard.
+slh-sh query ALL Stage_1 Derogation -c
 
 # Open Google Drive folder in browser
 slh-sh gd

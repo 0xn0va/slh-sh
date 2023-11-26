@@ -19,7 +19,7 @@ def query(
         typer.Argument(
             help="""Multipart with one or more arguments,
 first argument one or more Author or ID separated by colon, second ThemeName, third SubThemeName
-e.g. slh-sh query themes John,120,192 Stage_1 Derogation or a direct SQL query with -s/--sqlquery"""
+e.g. slh-sh query themes John,120,192 Stage_1 Derogation or a direct SQL query with -s/--sqlquery, use '[red]ALL[/red]' or '[red]all[/red]' as term to get all studies for a theme and subtheme, e.g. [red]slh-sh query all Stage_1 Derogation -c[/red]"""
         ),
     ],
     studytable: Annotated[
@@ -74,7 +74,7 @@ result: {db_res}
                 """
 SQL query detected!
 to query sql database directly use -s/--sqlquery option, e.g.:
-slh-sh query -s "SELECT * FROM studies WHERE authors LIKE '%John%'"
+[red]slh-sh query -s "SELECT * FROM studies WHERE authors LIKE '%John%'[/red]"
 """
             )
             exit()

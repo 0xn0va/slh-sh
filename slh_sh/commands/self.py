@@ -11,7 +11,7 @@ from slh_sh.utils.log import logger
 from slh_sh.utils.file import get_pdf_dir
 from slh_sh.utils.update import get_remote_version
 
-slh_version: str = "0.1.11"
+slh_version: str = "0.1.12"
 
 app = typer.Typer()
 
